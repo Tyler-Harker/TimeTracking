@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ProjectManager.Api/ProjectManager.Api.csproj" />
+    <Project Path="src/ProjectManager.AppHost/ProjectManager.AppHost.csproj" />
+    <Project Path="src/ProjectManager.MigrationService/ProjectManager.MigrationService.csproj" />
+    <Project Path="src/ProjectManager.ServiceDefaults/ProjectManager.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

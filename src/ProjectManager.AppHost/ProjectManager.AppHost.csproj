@@ -1,0 +1,20 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.1.1">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectManager.Api\ProjectManager.Api.csproj" />
+    <ProjectReference Include="..\ProjectManager.MigrationService\ProjectManager.MigrationService.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.1.2" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>2ba2bea5-e23e-4577-9c85-83bd53200cdc</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

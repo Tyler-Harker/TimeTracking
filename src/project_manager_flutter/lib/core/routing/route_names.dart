@@ -1,0 +1,32 @@
+class RouteNames {
+  static const String login = 'login';
+  static const String register = 'register';
+  static const String organizationList = 'organization-list';
+  static const String dashboard = 'dashboard';
+  static const String clients = 'clients';
+  static const String clientDetail = 'client-detail';
+  static const String clientNew = 'client-new';
+  static const String clientEdit = 'client-edit';
+  static const String contactNew = 'contact-new';
+  static const String contactEdit = 'contact-edit';
+  static const String projects = 'projects';
+  static const String projectDetail = 'project-detail';
+  static const String projectNew = 'project-new';
+  static const String projectEdit = 'project-edit';
+  static const String projectTeams = 'project-teams';
+  static const String teamDetail = 'team-detail';
+  static const String teamNew = 'team-new';
+  static const String timeEntries = 'time-entries';
+  static const String timeEntryNew = 'time-entry-new';
+  static const String timeEntryEdit = 'time-entry-edit';
+  static const String projectTimeEntryNew = 'project-time-entry-new';
+  static const String projectTaskNew = 'project-task-new';
+  static const String taskDetail = 'task-detail';
+  static const String taskEdit = 'task-edit';
+  static const String taskLogTime = 'task-log-time';
+  static const String invoices = 'invoices';
+  static const String invoiceDetail = 'invoice-detail';
+  static const String invoiceGenerate = 'invoice-generate';
+  static const String profile = 'profile';
+  static const String organizationSettings = 'organization-settings';
+}
