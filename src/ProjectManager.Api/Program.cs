@@ -84,6 +84,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 // 9. Carter
 builder.Services.AddCarter();
+builder.Services.AddCors();
 
 // 9. Exception handler
 builder.Services.AddScoped<GlobalExceptionHandler>();
