@@ -128,6 +128,10 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+app.UseCors(b => b.AllowAnyHeader()
+.AllowAnyMethod()
+.WithOrigins(["https://localhost:3000", "https://timetracking.harker.dev"]));
+
 // Middleware pipeline
 app.MapDefaultEndpoints();
 

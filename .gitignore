@@ -1,0 +1,61 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.DotSettings.user
+
+# ASP.NET
+appsettings.*.local.json
+
+# .NET Aspire
+.aspire/
+
+# NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.env
+.env*.local
+
+# Flutter (handled by its own .gitignore, but cover the basics)
+**/build/
+**/.dart_tool/
+**/.packages
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+*.pfx
+*.key
+*.pem
