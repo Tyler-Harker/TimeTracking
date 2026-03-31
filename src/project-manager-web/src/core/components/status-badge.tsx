@@ -1,19 +1,22 @@
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
 const STATUS_STYLES: Record<string, string> = {
-  Active: "bg-green-500/20 text-green-400",
-  Planned: "bg-blue-500/20 text-blue-400",
-  OnHold: "bg-yellow-500/20 text-yellow-400",
-  Completed: "bg-slate-500/20 text-slate-400",
-  Cancelled: "bg-red-500/20 text-red-400",
-  Draft: "bg-slate-500/20 text-slate-400",
-  Sent: "bg-blue-500/20 text-blue-400",
-  Paid: "bg-green-500/20 text-green-400",
-  Overdue: "bg-red-500/20 text-red-400",
-  Open: "bg-blue-500/20 text-blue-400",
-  InProgress: "bg-indigo-500/20 text-indigo-400",
-  Low: "bg-slate-500/20 text-slate-400",
-  Medium: "bg-yellow-500/20 text-yellow-400",
-  High: "bg-orange-500/20 text-orange-400",
-  Urgent: "bg-red-500/20 text-red-400",
+  Active: "bg-green-500/20 text-green-400 border-green-500/30",
+  Planned: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  OnHold: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  Completed: "bg-muted text-muted-foreground border-border",
+  Cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
+  Draft: "bg-muted text-muted-foreground border-border",
+  Sent: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  Paid: "bg-green-500/20 text-green-400 border-green-500/30",
+  Overdue: "bg-red-500/20 text-red-400 border-red-500/30",
+  Open: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  InProgress: "bg-primary/20 text-primary border-primary/30",
+  Low: "bg-muted text-muted-foreground border-border",
+  Medium: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  High: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  Urgent: "bg-red-500/20 text-red-400 border-red-500/30",
 };
 
 interface StatusBadgeProps {
@@ -21,10 +24,10 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const style = STATUS_STYLES[status] ?? "bg-slate-500/20 text-slate-400";
+  const style = STATUS_STYLES[status] ?? "bg-muted text-muted-foreground border-border";
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${style}`}>
+    <Badge variant="outline" className={cn(style)}>
       {status}
-    </span>
+    </Badge>
   );
 }

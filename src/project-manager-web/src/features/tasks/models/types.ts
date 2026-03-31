@@ -12,6 +12,7 @@ export interface TaskItem {
   assigneeName?: string;
   dueDate?: string;
   estimatedHours?: number;
+  lastActivity: string;
 }
 
 export interface TaskDetail extends TaskItem {

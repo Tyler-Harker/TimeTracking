@@ -2,6 +2,7 @@ import { apiClient } from "@/core/api/client";
 import { ApiEndpoints } from "@/core/api/constants";
 import { ApiException } from "@/core/api/exceptions";
 import type { TimeEntry, CreateTimeEntryRequest, UpdateTimeEntryRequest } from "../models/types";
+import type { PaginatedResponse } from "@/core/api/types";
 import { AxiosError } from "axios";
 
 function handleError(error: unknown): never {
@@ -12,12 +13,12 @@ function handleError(error: unknown): never {
 }
 
 export const timeEntryRepository = {
-  async list(projectId?: string): Promise<TimeEntry[]> {
+  async list(filters?: { projectId?: string; taskId?: string }): Promise<TimeEntry[]> {
     try {
-      const response = await apiClient.get<TimeEntry[]>(ApiEndpoints.timeEntries, {
-        params: projectId ? { projectId } : undefined,
+      const response = await apiClient.get<PaginatedResponse<TimeEntry>>(ApiEndpoints.timeEntries, {
+        params: { ...filters, pageSize: 100 },
       });
-      return response.data;
+      return response.data.items;
     } catch (error) { handleError(error); }
   },
 

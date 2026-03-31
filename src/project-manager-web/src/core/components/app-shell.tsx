@@ -3,19 +3,23 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Dashboard", href: "/dashboard", icon: DashboardIcon },
-  { label: "Clients", href: "/clients", icon: ClientsIcon },
-  { label: "Projects", href: "/projects", icon: ProjectsIcon },
-  { label: "Time", href: "/time-entries", icon: TimeIcon },
-  { label: "Invoices", href: "/invoices", icon: InvoicesIcon },
+  { label: "Dashboard", path: "/dashboard", icon: DashboardIcon },
+  { label: "Clients", path: "/clients", icon: ClientsIcon },
+  { label: "Projects", path: "/projects", icon: ProjectsIcon },
+  { label: "Time", path: "/time-entries", icon: TimeIcon },
+  { label: "Invoices", path: "/invoices", icon: InvoicesIcon },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, activeOrganizationId } = useAuthStore();
+  const orgBase = `/organizations/${activeOrganizationId}`;
 
   function handleLogout() {
     logout();
@@ -25,22 +29,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar - desktop */}
-      <aside className="hidden md:flex md:w-64 md:flex-col border-r border-slate-700 bg-slate-900">
-        <div className="flex h-14 items-center px-4 border-b border-slate-700">
-          <span className="text-lg font-bold text-slate-50">ProjectManager</span>
+      <aside className="hidden md:flex md:w-64 md:flex-col bg-card">
+        <div className="flex h-14 items-center px-4">
+          <span className="text-lg font-bold text-foreground">ProjectManager</span>
         </div>
+        <Separator />
         <nav className="flex-1 px-2 py-4 space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const href = `${orgBase}${item.path}`;
+            const isActive = pathname.includes(item.path);
             return (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-indigo-500/20 text-indigo-400"
-                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-50"
-                }`}
+                key={item.path}
+                href={href}
+                className={cn(
+                  buttonVariants({ variant: isActive ? "secondary" : "ghost" }),
+                  "w-full justify-start gap-3",
+                  isActive && "bg-primary/10 text-primary"
+                )}
               >
                 <item.icon active={isActive} />
                 {item.label}
@@ -48,57 +54,60 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="border-t border-slate-700 p-2 space-y-1">
-          <Link href="/profile" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-50 transition-colors">
+        <Separator />
+        <div className="p-2 space-y-1">
+          <Link href={`${orgBase}/profile`} className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3")}>
             <ProfileIcon />
             Profile
           </Link>
-          {activeOrganizationId && (
-            <Link href={`/organizations/${activeOrganizationId}/settings`} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-50 transition-colors">
-              <SettingsIcon />
-              Settings
-            </Link>
-          )}
-          <Link href="/organizations" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-50 transition-colors">
+          <Link href={`${orgBase}/settings`} className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3")}>
+            <SettingsIcon />
+            Settings
+          </Link>
+          <Link href="/organizations" className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3")}>
             <OrgIcon />
             Switch Org
           </Link>
-          <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-50 transition-colors">
+          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground" onClick={handleLogout}>
             <LogoutIcon />
             Sign Out
-          </button>
+          </Button>
         </div>
       </aside>
 
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Mobile header */}
-        <header className="flex h-14 items-center justify-between border-b border-slate-700 bg-slate-900 px-4 md:hidden">
-          <span className="text-lg font-bold text-slate-50">PM</span>
+        <header className="flex h-14 items-center justify-between bg-card px-4 md:hidden">
+          <span className="text-lg font-bold text-foreground">PM</span>
           <div className="flex items-center gap-2">
-            <Link href="/profile" className="p-2 text-slate-400 hover:text-slate-50">
+            <Link href={`${orgBase}/profile`} className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}>
               <ProfileIcon />
             </Link>
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-slate-50">
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogoutIcon />
-            </button>
+            </Button>
           </div>
         </header>
+        <Separator className="md:hidden" />
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto bg-background">{children}</main>
 
         {/* Mobile bottom nav */}
-        <nav className="flex border-t border-slate-700 bg-slate-900 md:hidden">
+        <Separator className="md:hidden" />
+        <nav className="flex bg-card md:hidden">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname.startsWith(item.href);
+            const href = `${orgBase}${item.path}`;
+            const isActive = pathname.includes(item.path);
             return (
               <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-2 text-xs ${
-                  isActive ? "text-indigo-400" : "text-slate-400"
-                }`}
+                key={item.path}
+                href={href}
+                className={cn(
+                  "flex flex-1 flex-col items-center gap-1 py-2 text-xs",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}
               >
                 <item.icon active={isActive} />
                 {item.label}
@@ -113,7 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function DashboardIcon({ active }: { active?: boolean }) {
   return (
-    <svg className={`h-5 w-5 ${active ? "text-indigo-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={cn("h-5 w-5", active && "text-primary")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
     </svg>
   );
@@ -121,7 +130,7 @@ function DashboardIcon({ active }: { active?: boolean }) {
 
 function ClientsIcon({ active }: { active?: boolean }) {
   return (
-    <svg className={`h-5 w-5 ${active ? "text-indigo-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={cn("h-5 w-5", active && "text-primary")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
@@ -129,7 +138,7 @@ function ClientsIcon({ active }: { active?: boolean }) {
 
 function ProjectsIcon({ active }: { active?: boolean }) {
   return (
-    <svg className={`h-5 w-5 ${active ? "text-indigo-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={cn("h-5 w-5", active && "text-primary")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
     </svg>
   );
@@ -137,7 +146,7 @@ function ProjectsIcon({ active }: { active?: boolean }) {
 
 function TimeIcon({ active }: { active?: boolean }) {
   return (
-    <svg className={`h-5 w-5 ${active ? "text-indigo-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={cn("h-5 w-5", active && "text-primary")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
@@ -145,7 +154,7 @@ function TimeIcon({ active }: { active?: boolean }) {
 
 function InvoicesIcon({ active }: { active?: boolean }) {
   return (
-    <svg className={`h-5 w-5 ${active ? "text-indigo-400" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className={cn("h-5 w-5", active && "text-primary")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
     </svg>
   );

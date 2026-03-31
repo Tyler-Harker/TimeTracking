@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
   title: string;
@@ -10,12 +12,9 @@ interface PageHeaderProps {
 export function PageHeader({ title, action }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-6">
-      <h1 className="text-2xl font-bold text-slate-50">{title}</h1>
+      <h1 className="text-2xl font-bold text-foreground">{title}</h1>
       {action && (
-        <Link
-          href={action.href}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
-        >
+        <Link href={action.href} className={cn(buttonVariants())}>
           {action.label}
         </Link>
       )}

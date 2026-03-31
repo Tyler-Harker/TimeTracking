@@ -1,4 +1,4 @@
-export type InvoiceStatus = "Draft" | "Sent" | "Paid" | "Overdue";
+export type InvoiceStatus = "Draft" | "Sent" | "Paid" | "Overdue" | "Cancelled";
 
 export interface Invoice {
   id: string;
@@ -11,12 +11,13 @@ export interface Invoice {
 
 export interface InvoiceDetail extends Invoice {
   organizationId: string;
-  clientId: string;
-  clientName: string;
+  clientId?: string;
+  clientName?: string;
   projectId?: string;
   projectName?: string;
   taxRate: number;
   taxAmount: number;
+  notes?: string;
   paidDate?: string;
   lineItems: InvoiceLineItem[];
 }
@@ -30,8 +31,11 @@ export interface InvoiceLineItem {
 }
 
 export interface GenerateInvoiceRequest {
-  clientId: string;
+  clientId?: string;
   projectId?: string;
+  taxRate: number;
+  dueDate: string;
+  notes?: string;
 }
 
 export interface UpdateInvoiceStatusRequest {

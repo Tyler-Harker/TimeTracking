@@ -1,11 +1,15 @@
+import { Card, CardContent } from "@/components/ui/card";
+
 interface EmptyStateProps {
   message: string;
 }
 
 export function EmptyState({ message }: EmptyStateProps) {
   return (
-    <div className="flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 p-12">
-      <p className="text-slate-400">{message}</p>
-    </div>
+    <Card>
+      <CardContent className="flex items-center justify-center py-8">
+        <p className="text-muted-foreground">{message}</p>
+      </CardContent>
+    </Card>
   );
 }

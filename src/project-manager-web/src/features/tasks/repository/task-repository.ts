@@ -2,6 +2,7 @@ import { apiClient } from "@/core/api/client";
 import { ApiEndpoints } from "@/core/api/constants";
 import { ApiException } from "@/core/api/exceptions";
 import type { TaskItem, TaskDetail, CreateTaskRequest, UpdateTaskRequest } from "../models/types";
+import type { PaginatedResponse } from "@/core/api/types";
 import { AxiosError } from "axios";
 
 function handleError(error: unknown): never {
@@ -14,10 +15,10 @@ function handleError(error: unknown): never {
 export const taskRepository = {
   async list(projectId?: string): Promise<TaskItem[]> {
     try {
-      const response = await apiClient.get<TaskItem[]>(ApiEndpoints.tasks, {
-        params: projectId ? { projectId } : undefined,
+      const response = await apiClient.get<PaginatedResponse<TaskItem>>(ApiEndpoints.tasks, {
+        params: { ...(projectId ? { projectId } : {}), pageSize: 100 },
       });
-      return response.data;
+      return response.data.items;
     } catch (error) { handleError(error); }
   },
 

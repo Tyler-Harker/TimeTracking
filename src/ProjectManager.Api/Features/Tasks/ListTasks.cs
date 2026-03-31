@@ -28,7 +28,8 @@ public static class ListTasks
         Guid? AssigneeId,
         string? AssigneeName,
         DateOnly? DueDate,
-        decimal? EstimatedHours);
+        decimal? EstimatedHours,
+        DateTime LastActivity);
 
     public class Handler(
         AppDbContext db,
@@ -58,10 +59,13 @@ public static class ListTasks
 
             var items = await query
                 .OrderBy(t => t.Status == Data.Entities.TaskStatus.Completed ? 1 : 0)
+                .ThenByDescending(t =>
+                    t.TimeEntries.Any()
+                        ? (t.TimeEntries.Max(te => te.CreatedAt) > t.UpdatedAt
+                            ? t.TimeEntries.Max(te => te.CreatedAt)
+                            : t.UpdatedAt)
+                        : t.UpdatedAt)
                 .ThenByDescending(t => t.Priority)
-                .ThenBy(t => t.DueDate == null ? 1 : 0)
-                .ThenBy(t => t.DueDate)
-                .ThenByDescending(t => t.CreatedAt)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .Select(t => new TaskItem(
@@ -69,7 +73,12 @@ public static class ListTasks
                     t.Name, t.Status.ToString(), t.Priority.ToString(),
                     t.AssigneeId,
                     t.Assignee != null ? t.Assignee.FirstName + " " + t.Assignee.LastName : null,
-                    t.DueDate, t.EstimatedHours))
+                    t.DueDate, t.EstimatedHours,
+                    t.TimeEntries.Any()
+                        ? (t.TimeEntries.Max(te => te.CreatedAt) > t.UpdatedAt
+                            ? t.TimeEntries.Max(te => te.CreatedAt)
+                            : t.UpdatedAt)
+                        : t.UpdatedAt))
                 .ToListAsync(cancellationToken);
 
             return new Response(items, totalCount, request.Page, request.PageSize);

@@ -18,8 +18,9 @@ export interface ClientContact {
   name: string;
   email?: string;
   phone?: string;
+  isStakeHolder: boolean;
+  isInvoicing: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface CreateClientRequest {
@@ -41,10 +42,14 @@ export interface CreateContactRequest {
   name: string;
   email?: string;
   phone?: string;
+  isStakeHolder: boolean;
+  isInvoicing: boolean;
 }
 
 export interface UpdateContactRequest {
-  name?: string;
+  name: string;
   email?: string;
   phone?: string;
+  isStakeHolder: boolean;
+  isInvoicing: boolean;
 }

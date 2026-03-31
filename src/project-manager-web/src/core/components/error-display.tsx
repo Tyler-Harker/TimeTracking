@@ -1,5 +1,9 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { AlertCircle } from "lucide-react";
+
 interface ErrorDisplayProps {
   message: string;
   onRetry?: () => void;
@@ -8,14 +12,14 @@ interface ErrorDisplayProps {
 export function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-4">
-      <p className="text-error text-sm">{message}</p>
+      <Alert variant="destructive" className="max-w-md">
+        <AlertCircle className="size-4" />
+        <AlertDescription>{message}</AlertDescription>
+      </Alert>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
-        >
+        <Button onClick={onRetry} size="sm">
           Retry
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     if (status === "authenticated") {
       if (activeOrganizationId) {
-        router.replace("/dashboard");
+        router.replace(`/organizations/${activeOrganizationId}/dashboard`);
       } else {
         router.replace("/organizations");
       }
@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-600 border-t-indigo-500" />
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
     </div>
   );
 }
