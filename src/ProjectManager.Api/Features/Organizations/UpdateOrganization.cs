@@ -8,8 +8,8 @@ namespace ProjectManager.Api.Features.Organizations;
 
 public static class UpdateOrganization
 {
-    public record Command(Guid Id, string Name, string? Description, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber) : IRequest<Response>;
-    public record Response(Guid Id, string Name, string Slug, string? Description, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber);
+    public record Command(Guid Id, string Name, string? Description, string? Address, string? Phone, string? Email, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber) : IRequest<Response>;
+    public record Response(Guid Id, string Name, string Slug, string? Description, string? Address, string? Phone, string? Email, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber);
 
     public class Validator : AbstractValidator<Command>
     {
@@ -31,13 +31,16 @@ public static class UpdateOrganization
 
             org.Name = request.Name;
             org.Description = request.Description;
+            org.Address = request.Address;
+            org.Phone = request.Phone;
+            org.Email = request.Email;
             org.DefaultBillableRate = request.DefaultBillableRate;
             org.BankAccountNumber = request.BankAccountNumber;
             org.BankRoutingNumber = request.BankRoutingNumber;
 
             await db.SaveChangesAsync(cancellationToken);
 
-            return new Response(org.Id, org.Name, org.Slug, org.Description, org.DefaultBillableRate, org.BankAccountNumber, org.BankRoutingNumber);
+            return new Response(org.Id, org.Name, org.Slug, org.Description, org.Address, org.Phone, org.Email, org.DefaultBillableRate, org.BankAccountNumber, org.BankRoutingNumber);
         }
     }
 
@@ -47,7 +50,7 @@ public static class UpdateOrganization
         {
             app.MapPut("/api/organizations/{id:guid}", async (Guid id, UpdateRequest body, ISender sender) =>
             {
-                var response = await sender.Send(new Command(id, body.Name, body.Description, body.DefaultBillableRate, body.BankAccountNumber, body.BankRoutingNumber));
+                var response = await sender.Send(new Command(id, body.Name, body.Description, body.Address, body.Phone, body.Email, body.DefaultBillableRate, body.BankAccountNumber, body.BankRoutingNumber));
                 return Results.Ok(response);
             })
             .WithName("UpdateOrganization")
@@ -62,5 +65,5 @@ public static class UpdateOrganization
         }
     }
 
-    public record UpdateRequest(string Name, string? Description, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber);
+    public record UpdateRequest(string Name, string? Description, string? Address, string? Phone, string? Email, decimal? DefaultBillableRate, string? BankAccountNumber, string? BankRoutingNumber);
 }

@@ -61,8 +61,19 @@ export default function InvoiceDetailPage() {
       )
       .join("");
 
+    const hasOrgInfo = org?.name || org?.address || org?.phone || org?.email;
+
     return `
 <div style="font-family:Arial,sans-serif;color:#1e293b;max-width:600px">
+  ${hasOrgInfo ? `
+  <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #4F46E5">
+    <div style="font-size:20px;font-weight:700;color:#1e293b">${org?.name ?? ""}</div>
+    ${org?.address ? `<div style="font-size:13px;color:#64748b;white-space:pre-line;margin-top:4px">${org.address}</div>` : ""}
+    <div style="font-size:13px;color:#64748b;margin-top:2px">
+      ${[org?.phone, org?.email].filter(Boolean).join(" &bull; ")}
+    </div>
+  </div>` : ""}
+
   <p>Hi,</p>
   <p>Please find details for invoice <strong>${invoice.invoiceNumber}</strong>.</p>
 

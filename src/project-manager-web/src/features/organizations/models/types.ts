@@ -4,6 +4,9 @@ export interface Organization {
   slug: string;
   description?: string;
   role?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
   defaultBillableRate?: number;
   bankAccountNumber?: string;
   bankRoutingNumber?: string;
@@ -25,6 +28,9 @@ export interface CreateOrganizationRequest {
 export interface UpdateOrganizationRequest {
   name?: string;
   description?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
   defaultBillableRate?: number;
   bankAccountNumber?: string;
   bankRoutingNumber?: string;

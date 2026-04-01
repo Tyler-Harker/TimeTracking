@@ -22,6 +22,9 @@ export default function OrganizationSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [defaultBillableRate, setDefaultBillableRate] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [bankRoutingNumber, setBankRoutingNumber] = useState("");
@@ -33,6 +36,9 @@ export default function OrganizationSettingsPage() {
         setOrg(data);
         setName(data.name);
         setDescription(data.description ?? "");
+        setAddress(data.address ?? "");
+        setPhone(data.phone ?? "");
+        setEmail(data.email ?? "");
         setDefaultBillableRate(data.defaultBillableRate?.toString() ?? "");
         setBankAccountNumber(data.bankAccountNumber ?? "");
         setBankRoutingNumber(data.bankRoutingNumber ?? "");
@@ -51,6 +57,9 @@ export default function OrganizationSettingsPage() {
       await organizationRepository.update(params.orgId, {
         name,
         description: description || undefined,
+        address: address || undefined,
+        phone: phone || undefined,
+        email: email || undefined,
         defaultBillableRate: defaultBillableRate ? parseFloat(defaultBillableRate) : undefined,
         bankAccountNumber: bankAccountNumber || undefined,
         bankRoutingNumber: bankRoutingNumber || undefined,
@@ -87,6 +96,23 @@ export default function OrganizationSettingsPage() {
               <Label>Description</Label>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
             </div>
+            <Separator className="my-2" />
+            <h3 className="text-base font-semibold text-foreground pt-2">Contact Information</h3>
+            <p className="text-sm text-muted-foreground">Displayed on invoice headers.</p>
+            <div className="space-y-1.5">
+              <Label>Address</Label>
+              <Textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder="123 Main St, Suite 100, City, ST 12345" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Phone</Label>
+              <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="billing@company.com" />
+            </div>
+            <Separator className="my-2" />
+            <h3 className="text-base font-semibold text-foreground pt-2">Billing</h3>
             <div className="space-y-1.5">
               <Label>Default Billable Rate</Label>
               <Input type="number" step="0.01" value={defaultBillableRate} onChange={(e) => setDefaultBillableRate(e.target.value)} />
