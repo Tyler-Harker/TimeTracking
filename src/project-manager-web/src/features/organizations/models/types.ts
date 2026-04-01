@@ -5,12 +5,13 @@ export interface Organization {
   description?: string;
   role?: string;
   defaultBillableRate?: number;
+  bankAccountNumber?: string;
+  bankRoutingNumber?: string;
 }
 
 export interface OrganizationDetail extends Organization {
   isActive: boolean;
   createdAt: string;
-  updatedAt: string;
   memberCount: number;
 }
 
@@ -25,4 +26,6 @@ export interface UpdateOrganizationRequest {
   name?: string;
   description?: string;
   defaultBillableRate?: number;
+  bankAccountNumber?: string;
+  bankRoutingNumber?: string;
 }

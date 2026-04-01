@@ -10,6 +10,8 @@ public class Organization
     public DateTime UpdatedAt { get; set; }
     public bool IsActive { get; set; } = true;
     public decimal? DefaultBillableRate { get; set; }
+    public string? BankAccountNumber { get; set; }
+    public string? BankRoutingNumber { get; set; }
 
     public ICollection<OrganizationUser> OrganizationUsers { get; set; } = [];
     public ICollection<OrganizationClient> OrganizationClients { get; set; } = [];

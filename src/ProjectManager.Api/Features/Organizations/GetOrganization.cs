@@ -17,6 +17,8 @@ public static class GetOrganization
         bool IsActive,
         DateTime CreatedAt,
         decimal? DefaultBillableRate,
+        string? BankAccountNumber,
+        string? BankRoutingNumber,
         IEnumerable<MemberInfo> Members);
 
     public record MemberInfo(Guid UserId, string Email, string FirstName, string LastName, string Role);
@@ -39,6 +41,8 @@ public static class GetOrganization
                 org.IsActive,
                 org.CreatedAt,
                 org.DefaultBillableRate,
+                org.BankAccountNumber,
+                org.BankRoutingNumber,
                 org.OrganizationUsers.Select(ou => new MemberInfo(
                     ou.UserId, ou.User.Email!, ou.User.FirstName, ou.User.LastName, ou.Role.ToString())));
         }

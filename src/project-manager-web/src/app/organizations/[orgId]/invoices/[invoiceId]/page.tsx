@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { invoiceRepository } from "@/features/invoices/repository/invoice-repository";
 import { clientRepository } from "@/features/clients/repository/client-repository";
+import { organizationRepository } from "@/features/organizations/repository/organization-repository";
 import type { InvoiceDetail, InvoiceStatus } from "@/features/invoices/models/types";
 import type { ClientContact } from "@/features/clients/models/types";
+import type { OrganizationDetail } from "@/features/organizations/models/types";
 import { LoadingSpinner } from "@/core/components/loading-spinner";
 import { ErrorDisplay } from "@/core/components/error-display";
 import { StatusBadge } from "@/core/components/status-badge";
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 export default function InvoiceDetailPage() {
   const params = useParams<{ orgId: string; invoiceId: string }>();
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
+  const [org, setOrg] = useState<OrganizationDetail | null>(null);
   const [invoicingContacts, setInvoicingContacts] = useState<ClientContact[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,8 +29,12 @@ export default function InvoiceDetailPage() {
   async function load() {
     setLoading(true);
     try {
-      const inv = await invoiceRepository.get(params.invoiceId);
+      const [inv, orgData] = await Promise.all([
+        invoiceRepository.get(params.invoiceId),
+        organizationRepository.get(params.orgId),
+      ]);
       setInvoice(inv);
+      setOrg(orgData);
       if (inv.clientId) {
         const contacts = await clientRepository.listContacts(inv.clientId);
         setInvoicingContacts(contacts.filter((c) => c.isInvoicing && c.email));
@@ -102,8 +109,46 @@ export default function InvoiceDetailPage() {
 
   ${invoice.notes ? `<p style="color:#64748b"><em>Notes: ${invoice.notes}</em></p>` : ""}
 
+  ${org?.bankAccountNumber || org?.bankRoutingNumber ? `
+  <hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0" />
+  <table style="width:100%;border-collapse:collapse">
+    <tr>
+      <td colspan="2" style="padding:4px 0;font-weight:600;font-size:14px">Payment Information</td>
+    </tr>
+    ${org.bankRoutingNumber ? `<tr>
+      <td style="padding:4px 0;color:#64748b;width:140px">Routing Number</td>
+      <td style="padding:4px 0">${org.bankRoutingNumber}</td>
+    </tr>` : ""}
+    ${org.bankAccountNumber ? `<tr>
+      <td style="padding:4px 0;color:#64748b;width:140px">Account Number</td>
+      <td style="padding:4px 0">${org.bankAccountNumber}</td>
+    </tr>` : ""}
+  </table>` : ""}
+
   <p>Thank you.</p>
 </div>`.trim();
+  }
+
+  async function handleDownloadPdf() {
+    if (!invoice) return;
+    const html2pdf = (await import("html2pdf.js")).default;
+    const html = buildInvoiceHtml();
+    const container = document.createElement("div");
+    container.innerHTML = html;
+    document.body.appendChild(container);
+
+    await html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `${invoice.invoiceNumber}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      })
+      .from(container)
+      .save();
+
+    document.body.removeChild(container);
   }
 
   async function handleSendInvoice() {
@@ -184,6 +229,9 @@ export default function InvoiceDetailPage() {
           onClick={handleSendInvoice}
         >
           {copied ? "Body copied — paste in email" : "Send Invoice"}
+        </Button>
+        <Button variant="outline" onClick={handleDownloadPdf}>
+          Download PDF
         </Button>
       </div>
 
