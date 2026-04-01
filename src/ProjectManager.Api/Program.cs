@@ -129,10 +129,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.UseCors(b => b.AllowAnyHeader()
-.AllowAnyMethod()
-.WithOrigins(["http://localhost:3000", "https://timetracking.harker.dev"]));
-
 // Middleware pipeline
 app.MapDefaultEndpoints();
 
@@ -153,9 +149,12 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-
 app.UseMiddleware<GlobalExceptionHandler>();
-app.UseHttpsRedirection();
+app.UseCors(b => b
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .WithOrigins("http://localhost:3000", "https://timetracking.harker.dev"));
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<OrganizationMiddleware>();
