@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuthStore } from "@/features/auth/store/auth-store";
 import { clientRepository } from "@/features/clients/repository/client-repository";
 import { projectRepository } from "@/features/projects/repository/project-repository";
 import { taskRepository } from "@/features/tasks/repository/task-repository";
@@ -13,27 +14,19 @@ interface Crumb {
   href: string;
 }
 
-// Resolves entity names from IDs for display in breadcrumbs
 const nameCache = new Map<string, string>();
 
-async function resolveEntityName(
-  type: string,
-  id: string
-): Promise<string> {
+async function resolveEntityName(type: string, id: string): Promise<string> {
   const key = `${type}:${id}`;
   if (nameCache.has(key)) return nameCache.get(key)!;
-
   try {
     let name = id.slice(0, 8);
     if (type === "client") {
-      const entity = await clientRepository.get(id);
-      name = entity.name;
+      name = (await clientRepository.get(id)).name;
     } else if (type === "project") {
-      const entity = await projectRepository.get(id);
-      name = entity.name;
+      name = (await projectRepository.get(id)).name;
     } else if (type === "task") {
-      const entity = await taskRepository.get(id);
-      name = entity.name;
+      name = (await taskRepository.get(id)).name;
     }
     nameCache.set(key, name);
     return name;
@@ -42,49 +35,27 @@ async function resolveEntityName(
   }
 }
 
-// Maps URL segments to breadcrumb config
-const SEGMENT_LABELS: Record<string, string> = {
-  organizations: "Organizations",
-  dashboard: "Dashboard",
-  settings: "Settings",
-  profile: "Profile",
-  clients: "Clients",
-  projects: "Projects",
-  tasks: "Tasks",
-  teams: "Teams",
-  "time-entries": "Time Entries",
-  invoices: "Invoices",
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
+// Action segments that are leaf pages (not navigable collections)
+const ACTION_LABELS: Record<string, string> = {
   new: "New",
   edit: "Edit",
   generate: "Generate",
   "log-time": "Log Time",
-  contacts: "Contacts",
 };
 
-// Segments that represent entity IDs (UUID-like)
-function isEntityId(segment: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
-}
-
-// Determines entity type from preceding segment
-function getEntityType(segments: string[], index: number): string | null {
-  if (index === 0) return null;
-  const prev = segments[index - 1];
-  const typeMap: Record<string, string> = {
-    organizations: "organization",
-    clients: "client",
-    projects: "project",
-    tasks: "task",
-    teams: "team",
-    "time-entries": "timeEntry",
-    invoices: "invoice",
-    contacts: "contact",
-  };
-  return typeMap[prev] ?? null;
-}
+// Segments that are collections between entities in the hierarchy
+// These should NOT get their own breadcrumb — they're just URL scaffolding
+const NESTED_COLLECTIONS = new Set([
+  "projects", "tasks", "contacts", "teams", "time-entries",
+]);
 
 export function Breadcrumbs() {
   const pathname = usePathname();
+  const { activeOrganizationId } = useAuthStore();
   const [crumbs, setCrumbs] = useState<Crumb[]>([]);
 
   useEffect(() => {
@@ -92,40 +63,131 @@ export function Breadcrumbs() {
 
     async function buildCrumbs() {
       const result: Crumb[] = [];
-      let path = "";
+      const orgBase = activeOrganizationId
+        ? `/organizations/${activeOrganizationId}`
+        : "";
 
-      for (let i = 0; i < segments.length; i++) {
+      // Always start with Dashboard as home
+      result.push({ label: "Dashboard", href: `${orgBase}/dashboard` });
+
+      // Parse the URL to extract meaningful crumbs
+      // Skip "organizations" and the orgId
+      let i = 0;
+      // Skip past /organizations/{orgId}
+      while (i < segments.length) {
+        if (segments[i] === "organizations") { i++; continue; }
+        if (i > 0 && segments[i - 1] === "organizations" && isUuid(segments[i])) { i++; continue; }
+        break;
+      }
+
+      // Now process the remaining segments
+      let path = orgBase;
+      while (i < segments.length) {
         const segment = segments[i];
-        path += `/${segment}`;
 
-        if (isEntityId(segment)) {
-          const entityType = getEntityType(segments, i);
-          if (entityType && ["client", "project", "task"].includes(entityType)) {
-            const name = await resolveEntityName(entityType, segment);
-            result.push({ label: name, href: path });
-          }
-          // Skip org ID, contact ID, timeEntry ID, invoice ID, team ID in breadcrumbs
-          // (they either show as their parent label or aren't needed)
-          else if (entityType === "organization") {
-            // Don't add org ID as a crumb — it's implicit
-            continue;
-          } else {
-            // For other entity IDs, just use a short ID
-            result.push({ label: segment.slice(0, 8) + "…", href: path });
-          }
-        } else {
-          const label = SEGMENT_LABELS[segment] ?? segment;
-          // Skip "organizations" label since org is implicit
-          if (segment === "organizations") continue;
-          result.push({ label, href: path });
+        // Top-level org pages
+        if (segment === "dashboard") {
+          // Already added as home
+          i++;
+          continue;
         }
+
+        // Top-level nav sections that have their own page
+        if (segment === "clients" && (i + 1 >= segments.length || !isUuid(segments[i + 1]))) {
+          // /clients is a list page — but only if it's the last segment or followed by "new"
+          path += "/clients";
+          result.push({ label: "Clients", href: path });
+          i++;
+          continue;
+        }
+
+        if (segment === "clients" && i + 1 < segments.length && isUuid(segments[i + 1])) {
+          // /clients/{id} — add Clients link to list, then resolve client name
+          path += "/clients";
+          result.push({ label: "Clients", href: `${orgBase}/clients` });
+          i++;
+          const clientId = segments[i];
+          path += `/${clientId}`;
+          const name = await resolveEntityName("client", clientId);
+          result.push({ label: name, href: path });
+          i++;
+          continue;
+        }
+
+        // Nested collection under an entity (projects, tasks, contacts, teams, time-entries)
+        if (NESTED_COLLECTIONS.has(segment)) {
+          const nextSegment = segments[i + 1];
+          path += `/${segment}`;
+
+          if (nextSegment && isUuid(nextSegment)) {
+            // Collection + entity ID: skip collection crumb, add entity
+            i++;
+            const entityId = segments[i];
+            path += `/${entityId}`;
+
+            let entityType: string | null = null;
+            if (segment === "projects") entityType = "project";
+            else if (segment === "tasks") entityType = "task";
+
+            if (entityType) {
+              const name = await resolveEntityName(entityType, entityId);
+              result.push({ label: name, href: path });
+            } else {
+              result.push({ label: entityId.slice(0, 8) + "…", href: path });
+            }
+            i++;
+            continue;
+          }
+
+          // Collection as leaf (e.g. /teams at end, or /time-entries list)
+          // Only add if it's a top-level org page with its own route
+          if (segment === "time-entries" || segment === "invoices" || segment === "teams") {
+            result.push({ label: segment === "time-entries" ? "Time Entries" : segment === "invoices" ? "Invoices" : "Teams", href: path });
+          }
+          i++;
+          continue;
+        }
+
+        // Top-level org nav sections (invoices, time-entries, settings, profile, projects list)
+        if (["invoices", "time-entries", "settings", "profile", "projects"].includes(segment)) {
+          path += `/${segment}`;
+          const labels: Record<string, string> = {
+            invoices: "Invoices",
+            "time-entries": "Time Entries",
+            settings: "Settings",
+            profile: "Profile",
+            projects: "Projects",
+          };
+          result.push({ label: labels[segment] ?? segment, href: path });
+
+          // If next segment is a UUID (e.g. /invoices/{id}), resolve it
+          if (i + 1 < segments.length && isUuid(segments[i + 1])) {
+            i++;
+            const entityId = segments[i];
+            path += `/${entityId}`;
+            result.push({ label: entityId.slice(0, 8) + "…", href: path });
+          }
+          i++;
+          continue;
+        }
+
+        // Action segments (new, edit, generate, log-time)
+        if (ACTION_LABELS[segment]) {
+          result.push({ label: ACTION_LABELS[segment], href: path + `/${segment}` });
+          i++;
+          continue;
+        }
+
+        // Fallback: skip unknown segments
+        path += `/${segment}`;
+        i++;
       }
 
       setCrumbs(result);
     }
 
     buildCrumbs();
-  }, [pathname]);
+  }, [pathname, activeOrganizationId]);
 
   if (crumbs.length <= 1) return null;
 
