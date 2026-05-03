@@ -50,4 +50,8 @@ export const ApiEndpoints = {
   invoiceStatus: (id: string) => `/api/invoices/${id}/status`,
   invoiceLineItems: (invoiceId: string) =>
     `/api/invoices/${invoiceId}/line-items`,
+
+  // Sync
+  syncExport: "/api/sync/export",
+  syncImport: "/api/sync/import",
 } as const;

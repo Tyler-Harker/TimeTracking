@@ -29,6 +29,10 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IM
             {
                 error = exception.Message
             }),
+            ForbiddenException => (403, new
+            {
+                error = exception.Message
+            }),
             KeyNotFoundException => (404, new
             {
                 error = exception.Message

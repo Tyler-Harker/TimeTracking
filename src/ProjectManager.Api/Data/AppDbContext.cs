@@ -12,6 +12,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public void SetTenantId(Guid organizationId) => _tenantId = organizationId;
 
+    public bool SuppressTimestamps { get; set; }
+
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<OrganizationUser> OrganizationUsers => Set<OrganizationUser>();
     public DbSet<Client> Clients => Set<Client>();
@@ -53,6 +55,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
 
     private void SetTimestamps()
     {
+        if (SuppressTimestamps) return;
         var now = DateTime.UtcNow;
         foreach (var entry in ChangeTracker.Entries())
         {

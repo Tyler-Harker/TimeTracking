@@ -64,6 +64,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <SettingsIcon />
             Settings
           </Link>
+          <Link href={`${orgBase}/sync`} className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3")}>
+            <SyncIcon />
+            Sync
+          </Link>
           <Link href="/organizations" className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3")}>
             <OrgIcon />
             Switch Org
@@ -181,6 +185,14 @@ function OrgIcon() {
   return (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  );
+}
+
+function SyncIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h5M20 20v-5h-5M5.5 9A7 7 0 0118.36 7M18.5 15A7 7 0 015.64 17" />
     </svg>
   );
 }

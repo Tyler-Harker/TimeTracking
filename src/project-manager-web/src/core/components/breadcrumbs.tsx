@@ -149,7 +149,7 @@ export function Breadcrumbs() {
         }
 
         // Top-level org nav sections (invoices, time-entries, settings, profile, projects list)
-        if (["invoices", "time-entries", "settings", "profile", "projects"].includes(segment)) {
+        if (["invoices", "time-entries", "settings", "profile", "projects", "sync"].includes(segment)) {
           path += `/${segment}`;
           const labels: Record<string, string> = {
             invoices: "Invoices",
@@ -157,6 +157,7 @@ export function Breadcrumbs() {
             settings: "Settings",
             profile: "Profile",
             projects: "Projects",
+            sync: "Sync",
           };
           result.push({ label: labels[segment] ?? segment, href: path });
 
