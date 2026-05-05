@@ -20,6 +20,13 @@ export interface OrganizationDetail extends Organization {
 
 export interface CreateOrganizationRequest {
   name: string;
+  description?: string;
+  defaultBillableRate?: number;
+}
+
+export interface CreateOrganizationResponse {
+  id: string;
+  name: string;
   slug: string;
   description?: string;
   defaultBillableRate?: number;

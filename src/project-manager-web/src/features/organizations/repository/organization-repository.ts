@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/client";
 import { ApiEndpoints } from "@/core/api/constants";
 import { ApiException } from "@/core/api/exceptions";
-import type { Organization, OrganizationDetail, CreateOrganizationRequest, UpdateOrganizationRequest } from "../models/types";
+import type { Organization, OrganizationDetail, CreateOrganizationRequest, CreateOrganizationResponse, UpdateOrganizationRequest } from "../models/types";
 import { AxiosError } from "axios";
 
 function handleError(error: unknown): never {
@@ -26,9 +26,10 @@ export const organizationRepository = {
     } catch (error) { handleError(error); }
   },
 
-  async create(request: CreateOrganizationRequest): Promise<void> {
+  async create(request: CreateOrganizationRequest): Promise<CreateOrganizationResponse> {
     try {
-      await apiClient.post(ApiEndpoints.organizations, request);
+      const response = await apiClient.post<CreateOrganizationResponse>(ApiEndpoints.organizations, request);
+      return response.data;
     } catch (error) { handleError(error); }
   },
 
