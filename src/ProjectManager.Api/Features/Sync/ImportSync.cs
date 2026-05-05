@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Carter;
 using FluentValidation;
 using MediatR;
@@ -35,32 +36,28 @@ public static class ImportSync
             // TODO: re-enable owner-only gate
             // await OwnerOnly.EnsureOwnerAsync(db, http, orgId, ct);
 
+            var currentUserId = Guid.Parse(http.HttpContext!.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var payload = request.Payload;
 
-            // Validate referenced users exist before mutating anything
+            // Resolve which referenced users exist locally — anything missing gets remapped.
             var referencedUserIds = payload.TimeEntries.Select(te => te.UserId)
                 .Concat(payload.Tasks.Where(t => t.AssigneeId.HasValue).Select(t => t.AssigneeId!.Value))
                 .Concat(payload.Teams.SelectMany(t => t.Members.Select(m => m.UserId)))
                 .Distinct()
                 .ToList();
 
-            if (referencedUserIds.Count > 0)
-            {
-                var existingUserIds = await db.Users
+            var knownUserIds = referencedUserIds.Count == 0
+                ? new HashSet<Guid>()
+                : (await db.Users
                     .Where(u => referencedUserIds.Contains(u.Id))
                     .Select(u => u.Id)
-                    .ToListAsync(ct);
-                var missing = referencedUserIds.Except(existingUserIds).ToList();
-                if (missing.Count > 0)
-                    throw new InvalidOperationException(
-                        $"Import references {missing.Count} user(s) that do not exist on this server: " +
-                        string.Join(", ", missing.Take(5)));
-            }
+                    .ToListAsync(ct)).ToHashSet();
 
             await using var tx = await db.Database.BeginTransactionAsync(ct);
 
             await WipeAsync(orgId, ct);
-            var summary = await LoadAsync(orgId, payload, ct);
+            var summary = await LoadAsync(orgId, payload, knownUserIds, currentUserId, ct);
 
             await tx.CommitAsync(ct);
             return summary;
@@ -131,7 +128,12 @@ public static class ImportSync
             }
         }
 
-        private async Task<SyncImportSummary> LoadAsync(Guid orgId, SyncExport payload, CancellationToken ct)
+        private async Task<SyncImportSummary> LoadAsync(
+            Guid orgId,
+            SyncExport payload,
+            HashSet<Guid> knownUserIds,
+            Guid currentUserId,
+            CancellationToken ct)
         {
             db.SuppressTimestamps = true;
             try
@@ -242,8 +244,11 @@ public static class ImportSync
                         Description = t.Description,
                         CreatedAt = t.CreatedAt
                     });
+                    var seenUsers = new HashSet<Guid>();
                     foreach (var m in t.Members)
                     {
+                        if (!knownUserIds.Contains(m.UserId)) continue; // skip members whose users don't exist locally
+                        if (!seenUsers.Add(m.UserId)) continue;
                         db.TeamMembers.Add(new TeamMember
                         {
                             TeamId = t.Id,
@@ -260,7 +265,9 @@ public static class ImportSync
                     {
                         Id = t.Id,
                         ProjectId = t.ProjectId,
-                        AssigneeId = t.AssigneeId,
+                        AssigneeId = t.AssigneeId.HasValue && knownUserIds.Contains(t.AssigneeId.Value)
+                            ? t.AssigneeId
+                            : null,
                         Name = t.Name,
                         Description = t.Description,
                         Status = t.Status,
@@ -319,7 +326,7 @@ public static class ImportSync
                     {
                         Id = te.Id,
                         OrganizationId = orgId,
-                        UserId = te.UserId,
+                        UserId = knownUserIds.Contains(te.UserId) ? te.UserId : currentUserId,
                         ProjectId = te.ProjectId,
                         TaskId = te.TaskId,
                         InvoiceLineItemId = te.InvoiceLineItemId,
