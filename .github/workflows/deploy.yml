@@ -79,14 +79,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install CapRover CLI
         run: npm install -g caprover
+      - name: Build deployment tarball
+        run: tar -cf /tmp/web-deploy.tar -C src/project-manager-web .
       - name: Deploy
-        working-directory: src/project-manager-web
         run: |
           caprover deploy \
             --caproverUrl "$CAPROVER_URL" \
             --appToken "$CAPROVER_APP_TOKEN" \
             --appName timetracking-web-prod \
-            --branch "${GITHUB_REF_NAME}"
+            --tarFile /tmp/web-deploy.tar
         env:
           CAPROVER_URL: https://cap.harker.dev
           CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_WEB_APP_TOKEN }}
