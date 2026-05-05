@@ -54,13 +54,15 @@ public static class ImportSync
                     .Select(u => u.Id)
                     .ToListAsync(ct)).ToHashSet();
 
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
-
-            await WipeAsync(orgId, ct);
-            var summary = await LoadAsync(orgId, payload, knownUserIds, currentUserId, ct);
-
-            await tx.CommitAsync(ct);
-            return summary;
+            var strategy = db.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async cancellationToken =>
+            {
+                await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+                await WipeAsync(orgId, cancellationToken);
+                var summary = await LoadAsync(orgId, payload, knownUserIds, currentUserId, cancellationToken);
+                await tx.CommitAsync(cancellationToken);
+                return summary;
+            }, ct);
         }
 
         private async Task WipeAsync(Guid orgId, CancellationToken ct)
