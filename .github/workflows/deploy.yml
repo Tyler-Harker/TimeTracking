@@ -77,17 +77,6 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      - name: Inject NEXT_PUBLIC_API_BASE_URL into Dockerfile
-        working-directory: src/project-manager-web
-        env:
-          API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL || 'https://timetracking-api.harker.dev' }}
-        run: |
-          sed -i "s|^ARG NEXT_PUBLIC_API_BASE_URL=.*|ARG NEXT_PUBLIC_API_BASE_URL=${API_BASE_URL}|" Dockerfile
-          grep '^ARG NEXT_PUBLIC_API_BASE_URL' Dockerfile
-          git config user.email "ci@github.local"
-          git config user.name "GitHub CI"
-          git add Dockerfile
-          git commit -m "ci: inject NEXT_PUBLIC_API_BASE_URL (ephemeral)"
       - name: Install CapRover CLI
         run: npm install -g caprover
       - name: Deploy
