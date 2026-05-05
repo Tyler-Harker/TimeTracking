@@ -1,0 +1,103 @@
+name: Deploy to CapRover
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "src/ProjectManager.Api/**"
+      - "src/ProjectManager.ServiceDefaults/**"
+      - "src/project-manager-web/**"
+      - "captain-definition"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which app to deploy"
+        type: choice
+        required: true
+        default: both
+        options: [both, api, web]
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.filter.outputs.api }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api:
+              - 'src/ProjectManager.Api/**'
+              - 'src/ProjectManager.ServiceDefaults/**'
+              - 'captain-definition'
+              - '.github/workflows/deploy.yml'
+            web:
+              - 'src/project-manager-web/**'
+              - '.github/workflows/deploy.yml'
+
+  deploy-api:
+    name: Deploy API
+    needs: changes
+    if: |
+      (github.event_name == 'push' && needs.changes.outputs.api == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'api' || inputs.target == 'both'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-api
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install CapRover CLI
+        run: npm install -g caprover
+      - name: Deploy
+        run: |
+          caprover deploy \
+            --caproverUrl "$CAPROVER_URL" \
+            --appToken "$CAPROVER_APP_TOKEN" \
+            --appName timetracking-api-prod \
+            --branch "${GITHUB_REF_NAME}"
+        env:
+          CAPROVER_URL: https://cap.harker.dev
+          CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_API_APP_TOKEN }}
+
+  deploy-web:
+    name: Deploy Web
+    needs: changes
+    if: |
+      (github.event_name == 'push' && needs.changes.outputs.web == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.target == 'web' || inputs.target == 'both'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-web
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject NEXT_PUBLIC_API_BASE_URL into Dockerfile
+        working-directory: src/project-manager-web
+        env:
+          API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL || 'https://timetracking-api.harker.dev' }}
+        run: |
+          sed -i "s|^ARG NEXT_PUBLIC_API_BASE_URL=.*|ARG NEXT_PUBLIC_API_BASE_URL=${API_BASE_URL}|" Dockerfile
+          grep '^ARG NEXT_PUBLIC_API_BASE_URL' Dockerfile
+          git config user.email "ci@github.local"
+          git config user.name "GitHub CI"
+          git add Dockerfile
+          git commit -m "ci: inject NEXT_PUBLIC_API_BASE_URL (ephemeral)"
+      - name: Install CapRover CLI
+        run: npm install -g caprover
+      - name: Deploy
+        working-directory: src/project-manager-web
+        run: |
+          caprover deploy \
+            --caproverUrl "$CAPROVER_URL" \
+            --appToken "$CAPROVER_APP_TOKEN" \
+            --appName timetracking-web-prod \
+            --branch "${GITHUB_REF_NAME}"
+        env:
+          CAPROVER_URL: https://cap.harker.dev
+          CAPROVER_APP_TOKEN: ${{ secrets.CAPROVER_WEB_APP_TOKEN }}
