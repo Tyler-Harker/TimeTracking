@@ -20,6 +20,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // 2. EF Core + PostgreSQL via Aspire
+// In hosted environments, allow a single DATABASE_URL (postgres://user:pass@host:port/db?sslmode=...)
+// to override the Aspire-provided connection string. Local AppHost runs ignore this.
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrWhiteSpace(databaseUrl))
+{
+    builder.Configuration["ConnectionStrings:projectmanagerdb"] = ConvertDatabaseUrl(databaseUrl);
+}
 builder.AddNpgsqlDbContext<AppDbContext>("projectmanagerdb");
 
 // 3. Identity
@@ -160,5 +167,34 @@ app.UseMiddleware<OrganizationMiddleware>();
 app.MapCarter();
 
 app.Run();
+
+static string ConvertDatabaseUrl(string url)
+{
+    var uri = new Uri(url);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var csb = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort ? 5432 : uri.Port,
+        Username = Uri.UnescapeDataString(userInfo[0]),
+        Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
+        Database = uri.AbsolutePath.TrimStart('/'),
+    };
+
+    foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+    {
+        var kv = pair.Split('=', 2);
+        if (kv.Length != 2) continue;
+        var key = Uri.UnescapeDataString(kv[0]);
+        var value = Uri.UnescapeDataString(kv[1]);
+        if (string.Equals(key, "sslmode", StringComparison.OrdinalIgnoreCase)
+            && Enum.TryParse<Npgsql.SslMode>(value, ignoreCase: true, out var ssl))
+        {
+            csb.SslMode = ssl;
+        }
+    }
+
+    return csb.ToString();
+}
 
 public partial class Program;
