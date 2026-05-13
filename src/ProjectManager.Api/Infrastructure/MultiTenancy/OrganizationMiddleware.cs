@@ -64,6 +64,7 @@ public class OrganizationMiddleware(RequestDelegate next)
         // Exact match for org listing/creation (but not sub-routes like /api/organizations/{id}/...)
         // Auth paths are always excluded
         if (path.StartsWith("/api/auth")) return true;
+        if (path.StartsWith("/api/admin")) return true;
         if (path.StartsWith("/health") || path.StartsWith("/alive")) return true;
         if (path.StartsWith("/openapi")) return true;
 

@@ -42,9 +42,10 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// 4. JWT
+// 4. JWT + Admin
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(AdminSettings.SectionName));
 
 builder.Services.AddAuthentication(options =>
     {
@@ -66,7 +67,12 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("admin", "true"));
+});
 
 // 5. Multi-tenancy
 builder.Services.AddScoped<ICurrentOrganizationService, CurrentOrganizationService>();

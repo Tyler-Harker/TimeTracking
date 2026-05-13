@@ -42,6 +42,30 @@ public class JwtService(IOptions<JwtSettings> options) : IJwtService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    public string GenerateAdminToken(string username, int expirationMinutes)
+    {
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, $"admin:{username}"),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("admin", "true"),
+            new("admin_username", username),
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: _settings.Issuer,
+            audience: _settings.Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
     public string GenerateRefreshToken()
     {
         var randomBytes = new byte[64];
