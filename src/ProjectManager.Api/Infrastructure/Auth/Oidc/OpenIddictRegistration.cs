@@ -89,7 +89,21 @@ public static class OpenIddictRegistration
         // Compose two bearer handlers under a single "Bearer" scheme. Legacy HS256 tokens
         // route to JwtBearer; RS256 tokens (issued by OpenIddict) route to OpenIddict's
         // validation handler.
-        services.AddAuthentication(OidcConstants.CompositeBearerScheme)
+        //
+        // AddIdentity (called earlier in Program.cs) explicitly sets DefaultAuthenticateScheme
+        // and DefaultChallengeScheme to the Identity cookie. The single-arg
+        // AddAuthentication(scheme) overload only sets DefaultScheme — leaving cookie as the
+        // auth/challenge default. That means `.RequireAuthorization()` on API endpoints
+        // (without an explicit scheme) tries to read an Identity cookie, fails for API
+        // callers using a Bearer token, and 302-redirects to /account/login. The browser
+        // then receives HTML, JSON.parse blows up, and the page crashes. Force every default
+        // to the composite Bearer scheme so API auth actually inspects the JWT.
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = OidcConstants.CompositeBearerScheme;
+            options.DefaultAuthenticateScheme = OidcConstants.CompositeBearerScheme;
+            options.DefaultChallengeScheme = OidcConstants.CompositeBearerScheme;
+        })
             .AddJwtBearer(OidcConstants.LegacyJwtScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters

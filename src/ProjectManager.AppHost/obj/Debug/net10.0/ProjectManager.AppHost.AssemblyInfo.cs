@@ -25,7 +25,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3c4bfaaa44bb201822198402c92d80b959e29dc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e1a4f4b58241d26763d7bad3c90c9cbe4da2adc8")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

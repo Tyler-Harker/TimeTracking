@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "UstGSHWzOzc=",
+  "dgSpecHash": "VJ5Y6Omr/ZY=",
   "success": true,
   "projectFilePath": "/home/tgharker/source/TimeTracking/src/ProjectManager.AppHost/ProjectManager.AppHost.csproj",
   "expectedPackageFiles": [
     "/home/tgharker/.nuget/packages/aspire.dashboard.sdk.linux-x64/13.1.1/aspire.dashboard.sdk.linux-x64.13.1.1.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspire.hosting/13.1.2/aspire.hosting.13.1.2.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspire.hosting.apphost/13.1.1/aspire.hosting.apphost.13.1.1.nupkg.sha512",
+    "/home/tgharker/.nuget/packages/aspire.hosting.nodejs/9.5.2/aspire.hosting.nodejs.9.5.2.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspire.hosting.orchestration.linux-x64/13.1.1/aspire.hosting.orchestration.linux-x64.13.1.1.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspire.hosting.postgresql/13.1.2/aspire.hosting.postgresql.13.1.2.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspnetcore.healthchecks.npgsql/9.0.0/aspnetcore.healthchecks.npgsql.9.0.0.nupkg.sha512",
