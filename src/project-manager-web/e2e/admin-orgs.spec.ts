@@ -117,21 +117,26 @@ test.describe("admin organizations page (browser)", () => {
     const username = process.env.ADMIN_USERNAME ?? "admin";
     const password = process.env.ADMIN_PASSWORD ?? "admin-dev-password";
 
-    // Seed an org so the table isn't empty.
+    // Seed an org with a unique searchable name so we can find it on page 1 even
+    // when other test runs have accumulated rows.
+    const uniqueTag = `pageseed-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const creator = await registerUser("pageseed");
-    await createOrgAs(creator);
+    await createOrgAs(creator, uniqueTag);
 
     await page.goto("/admin");
     await page.getByLabel("Username").fill(username);
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: /sign in/i }).click();
 
-    // Default landing for admin login is /admin/users; click through to organizations.
     await page.waitForURL(/\/admin\/users/);
     await page.getByRole("link", { name: "Organizations" }).click();
     await page.waitForURL(/\/admin\/organizations/);
 
     await expect(page.getByRole("heading", { name: /organization administration/i })).toBeVisible();
+
+    // Narrow the table to just our seeded org so the owner email is guaranteed visible.
+    await page.getByPlaceholder(/search by name or slug/i).fill(uniqueTag);
+    await page.getByRole("button", { name: /search/i }).click();
     await expect(page.getByText(creator.email)).toBeVisible();
   });
 });

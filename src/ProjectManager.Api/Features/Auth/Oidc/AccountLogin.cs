@@ -65,6 +65,7 @@ public class AccountLogin : ICarterModule
     private static string RenderForm(string returnUrl, string? error)
     {
         var encodedReturn = WebUtility.HtmlEncode(returnUrl);
+        var registerHref = "/account/register?returnUrl=" + WebUtility.UrlEncode(returnUrl);
         var errorBlock = string.IsNullOrEmpty(error)
             ? ""
             : $"<div style=\"color:#b00;margin-bottom:1rem;\">{WebUtility.HtmlEncode(error)}</div>";
@@ -79,6 +80,8 @@ public class AccountLogin : ICarterModule
               label{display:block;font-size:.85rem;margin-bottom:.25rem;color:#555}
               input{width:100%;padding:.5rem;margin-bottom:1rem;border:1px solid #ccc;border-radius:.25rem;box-sizing:border-box}
               button{width:100%;padding:.6rem;background:#111;color:#fff;border:0;border-radius:.25rem;font-weight:600;cursor:pointer}
+              .footer{margin-top:1rem;font-size:.85rem;color:#555;text-align:center}
+              .footer a{color:#111;text-decoration:underline}
             </style></head>
             <body>
               <form method="post" action="/account/login">
@@ -90,6 +93,7 @@ public class AccountLogin : ICarterModule
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password" required />
                 <button type="submit">Sign in</button>
+                <div class="footer">New here? <a href="{{registerHref}}">Create an account</a></div>
               </form>
             </body></html>
             """;

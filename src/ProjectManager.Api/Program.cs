@@ -75,7 +75,7 @@ builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(Admin
 
 // 4b. OpenIddict (OIDC server) + composite Bearer scheme
 builder.Services.Configure<OidcSettings>(builder.Configuration.GetSection(OidcSettings.SectionName));
-builder.Services.AddProjectManagerOpenIddict(jwtSettings);
+builder.Services.AddProjectManagerOpenIddict(jwtSettings, builder.Environment);
 builder.Services.AddScoped<OidcClientSeeder>();
 
 // Bridges OIDC short claim names (sub, email) to the long URN-style ones the legacy

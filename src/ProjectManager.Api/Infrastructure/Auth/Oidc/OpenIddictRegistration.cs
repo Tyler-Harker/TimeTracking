@@ -12,7 +12,8 @@ public static class OpenIddictRegistration
 {
     public static IServiceCollection AddProjectManagerOpenIddict(
         this IServiceCollection services,
-        JwtSettings legacyJwtSettings)
+        JwtSettings legacyJwtSettings,
+        IHostEnvironment hostEnvironment)
     {
         services.AddSingleton<OpenIddictCertificateStore>();
         services.AddSingleton<Microsoft.Extensions.Options.IPostConfigureOptions<OpenIddict.Server.OpenIddictServerOptions>, ConfigureOpenIddictCertificates>();
@@ -65,12 +66,21 @@ public static class OpenIddictRegistration
 
                 // Certificates are added by ConfigureOpenIddictCertificates after DI is ready.
 
-                options.UseAspNetCore()
+                var aspNetCore = options.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()
                     .EnableTokenEndpointPassthrough()
                     .EnableUserInfoEndpointPassthrough()
                     .EnableEndSessionEndpointPassthrough()
                     .EnableStatusCodePagesIntegration();
+
+                // OpenIddict refuses /connect/* over plain HTTP by default. In production
+                // CapRover terminates TLS and we honor X-Forwarded-Proto, so this stays on.
+                // In local dev (Aspire http profile, no proxy) we have to relax it or every
+                // OIDC test fails with "This server only accepts HTTPS requests".
+                if (hostEnvironment.IsDevelopment())
+                {
+                    aspNetCore.DisableTransportSecurityRequirement();
+                }
             })
             .AddValidation(options =>
             {
