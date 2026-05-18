@@ -15,7 +15,7 @@ export const organizationRepository = {
   async list(): Promise<Organization[]> {
     try {
       const response = await apiClient.get<Organization[]>(ApiEndpoints.organizations);
-      return response.data;
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) { handleError(error); }
   },
 

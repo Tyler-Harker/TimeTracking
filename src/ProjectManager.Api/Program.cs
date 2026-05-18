@@ -78,6 +78,11 @@ builder.Services.Configure<OidcSettings>(builder.Configuration.GetSection(OidcSe
 builder.Services.AddProjectManagerOpenIddict(jwtSettings);
 builder.Services.AddScoped<OidcClientSeeder>();
 
+// Bridges OIDC short claim names (sub, email) to the long URN-style ones the legacy
+// JwtBearer handler used to provide. Required so existing handlers reading
+// ClaimTypes.NameIdentifier keep working with OIDC tokens.
+builder.Services.AddTransient<Microsoft.AspNetCore.Authentication.IClaimsTransformation, SubjectClaimTransformation>();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy =>

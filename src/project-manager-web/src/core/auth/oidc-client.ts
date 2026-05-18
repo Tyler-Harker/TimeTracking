@@ -20,7 +20,8 @@ export interface OidcUserInfo {
   family_name?: string;
   name?: string;
   picture?: string;
-  org?: string[];
+  // Single-value claims arrive as strings, multi-value as arrays.
+  org?: string[] | string;
 }
 
 function getRedirectUri(): string {
@@ -159,9 +160,12 @@ function saveTokens(tokens: TokenResponse): void {
   if (tokens.id_token) localStorage.setItem("id_token", tokens.id_token);
 }
 
-export function parseOrgClaim(orgClaims: string[] | undefined): Array<{ organizationId: string; role: string }> {
+export function parseOrgClaim(orgClaims: string[] | string | undefined): Array<{ organizationId: string; role: string }> {
   if (!orgClaims) return [];
-  return orgClaims
+  // OpenIddict serializes a single-value claim as a string and a multi-value claim as
+  // an array. Normalise to an array so callers don't have to care.
+  const values = Array.isArray(orgClaims) ? orgClaims : [orgClaims];
+  return values
     .map((value) => {
       const [organizationId, role] = value.split(":");
       return organizationId && role ? { organizationId, role } : null;
