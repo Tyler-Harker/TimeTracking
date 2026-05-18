@@ -67,6 +67,9 @@ public class OrganizationMiddleware(RequestDelegate next)
         if (path.StartsWith("/api/admin")) return true;
         if (path.StartsWith("/health") || path.StartsWith("/alive")) return true;
         if (path.StartsWith("/openapi")) return true;
+        if (path.StartsWith("/connect")) return true;
+        if (path.StartsWith("/account")) return true;
+        if (path.StartsWith("/.well-known")) return true;
 
         // Allow org creation (POST /api/organizations) and listing (GET /api/organizations) without header
         // But sub-routes need it - handled by checking if path is exactly /api/organizations

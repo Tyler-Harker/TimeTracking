@@ -17,5 +17,5 @@ public class ProjectManager_AppHost
     /// <summary>
     /// The path to the Aspire Host project.
     /// </summary>
-    public static string ProjectPath => """/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectManager.AppHost""";
+    public static string ProjectPath => """/home/tgharker/source/TimeTracking/src/ProjectManager.AppHost""";
 }

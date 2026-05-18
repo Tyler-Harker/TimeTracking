@@ -4,12 +4,31 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!--
+      The API project's appsettings.json flows in as a transitive content item and collides
+      with this project's own. Suppress the duplicate error; the StripTransitiveApiContent
+      target below removes the API copy so this project's appsettings wins.
+    -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ProjectManager.Api\ProjectManager.Api.csproj" />
     <ProjectReference Include="..\ProjectManager.ServiceDefaults\ProjectManager.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <Target Name="StripTransitiveApiContent"
+          AfterTargets="GetCopyToPublishDirectoryItems"
+          BeforeTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <_AllChildProjectItemsWithTargetPath
+        Remove="@(_AllChildProjectItemsWithTargetPath)"
+        Condition="'%(_AllChildProjectItemsWithTargetPath.MSBuildSourceProjectFile)' != '' AND $([System.String]::Copy('%(_AllChildProjectItemsWithTargetPath.MSBuildSourceProjectFile)').Contains('ProjectManager.Api'))" />
+      <AllPublishItemsFullPathWithTargetPath
+        Remove="@(AllPublishItemsFullPathWithTargetPath)"
+        Condition="'%(AllPublishItemsFullPathWithTargetPath.MSBuildSourceProjectFile)' != '' AND $([System.String]::Copy('%(AllPublishItemsFullPathWithTargetPath.MSBuildSourceProjectFile)').Contains('ProjectManager.Api'))" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.2" />

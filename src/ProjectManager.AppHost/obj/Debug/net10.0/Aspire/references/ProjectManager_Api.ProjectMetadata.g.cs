@@ -15,7 +15,7 @@ public class ProjectManager_Api : global::Aspire.Hosting.IProjectMetadata
     /// <summary>
     /// The path to the ProjectManager_Api project.
     /// </summary>
-    public string ProjectPath => """/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectManager.Api/ProjectManager.Api.csproj""";
+    public string ProjectPath => """/home/tgharker/source/TimeTracking/src/ProjectManager.Api/ProjectManager.Api.csproj""";
 
     /// <summary>
     /// Gets a value indicating whether building the project before running it should be suppressed.

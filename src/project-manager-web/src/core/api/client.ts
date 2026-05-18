@@ -3,12 +3,13 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from "axios";
-import { API_BASE_URL, ApiEndpoints } from "./constants";
 import { tokenStorage, orgStorage } from "../auth/token-storage";
+import { refreshOidcTokens } from "../auth/oidc-client";
 import { useAuthStore } from "@/features/auth/store/auth-store";
+import { API_BASE_URL } from "./constants";
 
-const EXCLUDED_AUTH_PATHS = ["/api/auth/"];
-const EXCLUDED_ORG_PATHS = ["/api/auth/", "/api/organizations", "/api/users/me"];
+const EXCLUDED_AUTH_PATHS = ["/api/auth/", "/connect/"];
+const EXCLUDED_ORG_PATHS = ["/api/auth/", "/connect/", "/api/organizations", "/api/users/me"];
 
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
@@ -34,20 +35,7 @@ async function refreshTokens(): Promise<string | null> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const token = tokenStorage.getAccessToken();
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (!token || !refreshToken) return null;
-
-      const response = await axios.post(
-        `${API_BASE_URL}${ApiEndpoints.refreshToken}`,
-        { token, refreshToken }
-      );
-
-      const { token: newToken, refreshToken: newRefresh, expiresAt } = response.data;
-      tokenStorage.saveTokens(newToken, newRefresh, expiresAt);
-      return newToken;
-    } catch {
-      return null;
+      return await refreshOidcTokens();
     } finally {
       isRefreshing = false;
       refreshPromise = null;

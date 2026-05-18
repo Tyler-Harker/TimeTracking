@@ -1,15 +1,13 @@
-using System.Text;
 using System.Text.Json.Serialization;
 using Carter;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using ProjectManager.Api.Data;
 using ProjectManager.Api.Data.Entities;
 using ProjectManager.Api.Infrastructure.Auth;
+using ProjectManager.Api.Infrastructure.Auth.Oidc;
 using ProjectManager.Api.Infrastructure.Behaviors;
 using ProjectManager.Api.Infrastructure.Exceptions;
 using ProjectManager.Api.Infrastructure.MultiTenancy;
@@ -29,7 +27,8 @@ if (!string.IsNullOrWhiteSpace(databaseUrl))
 }
 builder.AddNpgsqlDbContext<AppDbContext>("projectmanagerdb");
 
-// 3. Identity
+// 3. Identity (cookies are used only for the OIDC interactive sign-in flow at /account/login;
+// API requests authenticate with the Bearer policy scheme below)
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     {
         options.Password.RequireDigit = true;
@@ -38,39 +37,38 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
         options.Password.RequireNonAlphanumeric = false;
         options.Password.RequiredLength = 8;
         options.User.RequireUniqueEmail = true;
+
+        // Align ClaimsPrincipal with what JwtService produces today so handlers downstream
+        // (multi-tenancy middleware, [Authorize] policies) keep working unchanged.
+        options.ClaimsIdentity.UserIdClaimType = System.Security.Claims.ClaimTypes.NameIdentifier;
+        options.ClaimsIdentity.EmailClaimType = System.Security.Claims.ClaimTypes.Email;
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// 4. JWT + Admin
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/account/login";
+    options.LogoutPath = "/account/logout";
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+});
+
+// 4. JWT (legacy) + Admin settings
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 builder.Services.Configure<AdminSettings>(builder.Configuration.GetSection(AdminSettings.SectionName));
 
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidAudience = jwtSettings.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+// 4b. OpenIddict (OIDC server) + composite Bearer scheme
+builder.Services.Configure<OidcSettings>(builder.Configuration.GetSection(OidcSettings.SectionName));
+builder.Services.AddProjectManagerOpenIddict(jwtSettings);
+builder.Services.AddScoped<OidcClientSeeder>();
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy =>
-        policy.RequireAuthenticatedUser()
+        policy.AddAuthenticationSchemes(OidcConstants.CompositeBearerScheme)
+              .RequireAuthenticatedUser()
               .RequireClaim("admin", "true"));
 });
 
@@ -159,6 +157,9 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+
+    var oidcSeeder = scope.ServiceProvider.GetRequiredService<OidcClientSeeder>();
+    await oidcSeeder.SeedAsync();
 }
 
 app.UseMiddleware<GlobalExceptionHandler>();

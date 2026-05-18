@@ -1,8 +1,20 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
 
+export const OIDC_CLIENT_ID = "pm-web";
+export const OIDC_SCOPES = "openid profile email offline_access pm_api";
+export const OIDC_REDIRECT_PATH = "/auth/callback";
+
+export const OidcEndpoints = {
+  authorize: "/connect/authorize",
+  token: "/connect/token",
+  userinfo: "/connect/userinfo",
+  logout: "/connect/logout",
+  discovery: "/.well-known/openid-configuration",
+} as const;
+
 export const ApiEndpoints = {
-  // Auth
+  // Auth (legacy password flow — still supported during transition)
   login: "/api/auth/login",
   register: "/api/auth/register",
   refreshToken: "/api/auth/refresh-token",

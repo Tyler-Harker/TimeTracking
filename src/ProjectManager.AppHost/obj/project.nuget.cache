@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jnDQJFrg/l4=",
+  "dgSpecHash": "UstGSHWzOzc=",
   "success": true,
-  "projectFilePath": "/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectManager.AppHost/ProjectManager.AppHost.csproj",
+  "projectFilePath": "/home/tgharker/source/TimeTracking/src/ProjectManager.AppHost/ProjectManager.AppHost.csproj",
   "expectedPackageFiles": [
     "/home/tgharker/.nuget/packages/aspire.dashboard.sdk.linux-x64/13.1.1/aspire.dashboard.sdk.linux-x64.13.1.1.nupkg.sha512",
     "/home/tgharker/.nuget/packages/aspire.hosting/13.1.2/aspire.hosting.13.1.2.nupkg.sha512",

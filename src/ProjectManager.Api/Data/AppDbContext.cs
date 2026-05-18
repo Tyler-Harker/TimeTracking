@@ -28,12 +28,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ClientContact> ClientContacts => Set<ClientContact>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<ProjectTask> ProjectTasks => Set<ProjectTask>();
+    public DbSet<OpenIddictSigningCertificate> OpenIddictSigningCertificates => Set<OpenIddictSigningCertificate>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // OpenIddict tables (applications/authorizations/scopes/tokens) keyed by Guid to match Identity
+        builder.UseOpenIddict<Guid>();
 
         // Global query filters for multi-tenancy
         // EF Core re-evaluates _tenantId per query via the captured 'this' reference

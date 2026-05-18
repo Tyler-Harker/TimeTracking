@@ -15,7 +15,7 @@ public class ProjectManager_MigrationService : global::Aspire.Hosting.IProjectMe
     /// <summary>
     /// The path to the ProjectManager_MigrationService project.
     /// </summary>
-    public string ProjectPath => """/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectManager.MigrationService/ProjectManager.MigrationService.csproj""";
+    public string ProjectPath => """/home/tgharker/source/TimeTracking/src/ProjectManager.MigrationService/ProjectManager.MigrationService.csproj""";
 
     /// <summary>
     /// Gets a value indicating whether building the project before running it should be suppressed.

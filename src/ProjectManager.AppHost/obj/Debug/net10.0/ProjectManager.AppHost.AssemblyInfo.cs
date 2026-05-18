@@ -17,17 +17,15 @@ using System.Reflection;
     "s/ext/"))]
 [assembly: System.Reflection.AssemblyMetadata("dcpbinpath", ("/home/tgharker/.nuget/packages/aspire.hosting.orchestration.linux-x64/13.1.1/tool" +
     "s/ext/bin/"))]
-[assembly: System.Reflection.AssemblyMetadata("apphostprojectpath", ("/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectMa" +
-    "nager.AppHost"))]
+[assembly: System.Reflection.AssemblyMetadata("apphostprojectpath", "/home/tgharker/source/TimeTracking/src/ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyMetadata("apphostprojectname", "ProjectManager.AppHost.csproj")]
 [assembly: System.Reflection.AssemblyMetadata("aspiredashboardpath", ("/home/tgharker/.nuget/packages/aspire.dashboard.sdk.linux-x64/13.1.1/tools/Aspire" +
     ".Dashboard"))]
-[assembly: System.Reflection.AssemblyMetadataAttribute("apphostprojectbaseintermediateoutputpath", ("/home/tgharker/PersonalDevelopment/ProjectManagement/ProjectManager/src/ProjectMa" +
-    "nager.AppHost/obj/"))]
+[assembly: System.Reflection.AssemblyMetadataAttribute("apphostprojectbaseintermediateoutputpath", "/home/tgharker/source/TimeTracking/src/ProjectManager.AppHost/obj/")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+73bb82a55285afe04e6a7c7ed7fc12cb3388f892")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3c4bfaaa44bb201822198402c92d80b959e29dc")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProjectManager.AppHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
