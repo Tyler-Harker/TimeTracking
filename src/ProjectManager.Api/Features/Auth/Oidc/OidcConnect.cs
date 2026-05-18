@@ -82,7 +82,7 @@ public class OidcConnect : ICarterModule
             .Where(ou => ou.UserId == user.Id)
             .ToListAsync();
 
-        var principal = BuildUserPrincipal(user, memberships, request.GetScopes());
+        var principal = BuildUserPrincipal(user, memberships, request.GetScopes(), ResolveIssuer(http));
 
         return Results.SignIn(principal, properties: null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -138,7 +138,7 @@ public class OidcConnect : ICarterModule
                 .Where(ou => ou.UserId == user.Id)
                 .ToListAsync();
 
-            var principal = BuildUserPrincipal(user, memberships, result.Principal.GetScopes());
+            var principal = BuildUserPrincipal(user, memberships, result.Principal.GetScopes(), ResolveIssuer(http));
             return Results.SignIn(principal, properties: null, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
@@ -160,6 +160,7 @@ public class OidcConnect : ICarterModule
 
             var principal = new ClaimsPrincipal(identity);
             principal.SetScopes(request.GetScopes());
+            // Machine-to-machine tokens only need to call the API resource server, not /connect/userinfo.
             principal.SetResources(OidcConstants.ApiResource);
             foreach (var claim in principal.Claims)
             {
@@ -228,7 +229,8 @@ public class OidcConnect : ICarterModule
     private static ClaimsPrincipal BuildUserPrincipal(
         User user,
         IReadOnlyList<OrganizationUser> memberships,
-        ImmutableArray<string> scopes)
+        ImmutableArray<string> scopes,
+        string issuer)
     {
         var identity = new ClaimsIdentity(
             authenticationType: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
@@ -249,7 +251,10 @@ public class OidcConnect : ICarterModule
 
         var principal = new ClaimsPrincipal(identity);
         principal.SetScopes(scopes);
-        principal.SetResources(OidcConstants.ApiResource);
+        // Include both the API resource and the issuer URL as audiences. The API resource
+        // server validates tokens against pm-api; OpenIddict's /connect/userinfo endpoint
+        // requires the audience to include the issuer URL, otherwise it returns 403.
+        principal.SetResources(OidcConstants.ApiResource, issuer);
 
         foreach (var claim in principal.Claims)
         {
@@ -257,6 +262,13 @@ public class OidcConnect : ICarterModule
         }
 
         return principal;
+    }
+
+    private static string ResolveIssuer(HttpContext http)
+    {
+        // Relies on UseForwardedHeaders to surface the original scheme/host when behind a proxy.
+        var host = http.Request.Host.HasValue ? http.Request.Host.Value : "localhost";
+        return $"{http.Request.Scheme}://{host}/";
     }
 
     private static IEnumerable<string> ResolveDestinations(Claim claim, ClaimsPrincipal principal)
