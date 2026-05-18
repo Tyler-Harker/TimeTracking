@@ -57,9 +57,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         name: m.organizationId,
         role: m.role,
       }));
+
+      // Reconcile the persisted active-org against this user's actual memberships.
+      // A leftover id from a prior session would otherwise auto-route the user to a
+      // dashboard for an org they no longer belong to (or never did).
+      const stored = orgStorage.getActiveOrganizationId();
+      const storedIsValid = stored !== null && organizations.some((o) => o.organizationId === stored);
+
+      let activeOrganizationId: string | null = null;
+      if (storedIsValid) {
+        activeOrganizationId = stored;
+      } else if (organizations.length === 1) {
+        activeOrganizationId = organizations[0].organizationId;
+      }
+
+      if (activeOrganizationId) {
+        orgStorage.setActiveOrganizationId(activeOrganizationId);
+      } else {
+        orgStorage.clearActiveOrganizationId();
+      }
+
       set({
         status: "authenticated",
         organizations,
+        activeOrganizationId,
         error: null,
       });
       return returnTo;

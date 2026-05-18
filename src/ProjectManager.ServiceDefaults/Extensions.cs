@@ -108,19 +108,16 @@ public static class Extensions
 
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
-        // Adding health checks endpoints to applications in non-development environments has security implications.
-        // See https://aka.ms/dotnet/aspire/healthchecks for details before enabling these endpoints in non-development environments.
-        if (app.Environment.IsDevelopment())
-        {
-            // All health checks must pass for app to be considered ready to accept traffic after starting
-            app.MapHealthChecks(HealthEndpointPath);
+        // /health runs every registered check (readiness); /alive runs only the lightweight
+        // "live" checks (liveness). Both are exposed in all environments so CapRover and
+        // any upstream proxy can probe the API. OrganizationMiddleware excludes these paths,
+        // and neither endpoint exposes dependency-level details to anonymous callers.
+        app.MapHealthChecks(HealthEndpointPath).AllowAnonymous();
 
-            // Only health checks tagged with the "live" tag must pass for app to be considered alive
-            app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
-            {
-                Predicate = r => r.Tags.Contains("live")
-            });
-        }
+        app.MapHealthChecks(AlivenessEndpointPath, new HealthCheckOptions
+        {
+            Predicate = r => r.Tags.Contains("live")
+        }).AllowAnonymous();
 
         return app;
     }
