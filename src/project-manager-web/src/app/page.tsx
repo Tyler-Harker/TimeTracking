@@ -6,7 +6,7 @@ import { useAuthStore } from "@/features/auth/store/auth-store";
 
 export default function Home() {
   const router = useRouter();
-  const { status, activeOrganizationId } = useAuthStore();
+  const { status, activeOrganizationId, loginWithOidc } = useAuthStore();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -16,9 +16,9 @@ export default function Home() {
         router.replace("/organizations");
       }
     } else if (status === "unauthenticated") {
-      router.replace("/login");
+      void loginWithOidc();
     }
-  }, [status, activeOrganizationId, router]);
+  }, [status, activeOrganizationId, router, loginWithOidc]);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

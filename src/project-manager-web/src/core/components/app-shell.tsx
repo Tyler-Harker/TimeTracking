@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -17,13 +17,13 @@ const NAV_ITEMS = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout, activeOrganizationId } = useAuthStore();
   const orgBase = `/organizations/${activeOrganizationId}`;
 
   function handleLogout() {
+    // logout() clears local state and then does window.location.assign(oidcLogoutUrl())
+    // which navigates the page away — no router push needed.
     logout();
-    router.push("/login");
   }
 
   return (
