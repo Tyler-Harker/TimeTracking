@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation.AspNetCore;
 using ProjectManager.Api.Data;
 using ProjectManager.Api.Data.Entities;
 using ProjectManager.Api.Infrastructure.Auth.Oidc;
@@ -33,6 +34,9 @@ public class OidcConnect : ICarterModule
             .ExcludeFromDescription();
 
         app.MapMethods("/connect/userinfo", ["GET", "POST"], UserInfoAsync)
+            .RequireAuthorization(policy => policy
+                .AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser())
             .ExcludeFromDescription();
 
         app.MapPost("/connect/logout", LogoutAsync)
@@ -178,13 +182,23 @@ public class OidcConnect : ICarterModule
         UserManager<User> userManager,
         AppDbContext db)
     {
-        var subject = http.User.GetClaim(OpenIddictConstants.Claims.Subject);
+        // Authenticate via the OpenIddict validation handler (resource-server style). The
+        // server-scheme AuthenticateAsync path didn't pick up the bearer token reliably in
+        // this pipeline and ended up issuing a default challenge → 403 insufficient_access.
+        // The validation handler reads the Authorization header, validates the JWT against
+        // the local server's signing keys, and returns the principal.
+        var auth = await http.AuthenticateAsync(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        if (!auth.Succeeded || auth.Principal is null)
+            return Results.Unauthorized();
+
+        var principal = auth.Principal;
+        var subject = principal.GetClaim(OpenIddictConstants.Claims.Subject);
         if (string.IsNullOrEmpty(subject) || !Guid.TryParse(subject, out var userId))
-            return Results.Challenge(authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+            return Results.Unauthorized();
 
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null)
-            return Results.Challenge(authenticationSchemes: [OpenIddictServerAspNetCoreDefaults.AuthenticationScheme]);
+            return Results.Unauthorized();
 
         var memberships = await db.OrganizationUsers
             .Include(ou => ou.Organization)
@@ -196,13 +210,13 @@ public class OidcConnect : ICarterModule
             [OpenIddictConstants.Claims.Subject] = user.Id.ToString(),
         };
 
-        if (http.User.HasScope(OpenIddictConstants.Scopes.Email) && !string.IsNullOrEmpty(user.Email))
+        if (principal.HasScope(OpenIddictConstants.Scopes.Email) && !string.IsNullOrEmpty(user.Email))
         {
             claims[OpenIddictConstants.Claims.Email] = user.Email;
             claims[OpenIddictConstants.Claims.EmailVerified] = user.EmailConfirmed;
         }
 
-        if (http.User.HasScope(OpenIddictConstants.Scopes.Profile))
+        if (principal.HasScope(OpenIddictConstants.Scopes.Profile))
         {
             claims[OpenIddictConstants.Claims.GivenName] = user.FirstName;
             claims[OpenIddictConstants.Claims.FamilyName] = user.LastName;
