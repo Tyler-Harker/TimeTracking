@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using ProjectManager.Api.Data;
 using ProjectManager.Api.Data.Entities;
 
@@ -30,7 +31,9 @@ public static class ResetUserPassword
 
     public class Handler(
         UserManager<User> userManager,
-        AppDbContext db) : IRequestHandler<Command, Response>
+        AppDbContext db,
+        IOpenIddictTokenManager tokenManager,
+        IOpenIddictAuthorizationManager authorizationManager) : IRequestHandler<Command, Response>
     {
         public async Task<Response> Handle(Command request, CancellationToken cancellationToken)
         {
@@ -50,9 +53,23 @@ public static class ResetUserPassword
             await userManager.UpdateAsync(user);
 
             var now = DateTime.UtcNow;
+
+            // Revoke legacy refresh tokens.
             await db.RefreshTokens
                 .Where(rt => rt.UserId == user.Id && rt.RevokedAt == null)
                 .ExecuteUpdateAsync(s => s.SetProperty(rt => rt.RevokedAt, now), cancellationToken);
+
+            // Revoke OIDC tokens + authorizations so any active /connect/* session for this
+            // user can no longer mint new access tokens.
+            var subject = user.Id.ToString();
+            await foreach (var token in tokenManager.FindBySubjectAsync(subject, cancellationToken))
+            {
+                await tokenManager.TryRevokeAsync(token, cancellationToken);
+            }
+            await foreach (var authorization in authorizationManager.FindBySubjectAsync(subject, cancellationToken))
+            {
+                await authorizationManager.TryRevokeAsync(authorization, cancellationToken);
+            }
 
             return new Response(user.Id, user.Email!);
         }

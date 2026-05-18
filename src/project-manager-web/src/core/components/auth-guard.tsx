@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/features/auth/store/auth-store";
 
-const PUBLIC_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES = ["/login", "/register", "/auth/callback"];
 const ADMIN_ROUTE_PREFIX = "/admin";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
