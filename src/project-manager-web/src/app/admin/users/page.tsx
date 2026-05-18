@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -146,9 +147,17 @@ export default function AdminUsersPage() {
               Manage user passwords and account status across all organizations.
             </p>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            <Link
+              href="/admin/organizations"
+              className="text-sm text-muted-foreground underline-offset-4 hover:underline self-center"
+            >
+              Organizations
+            </Link>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {error && (

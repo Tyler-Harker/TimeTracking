@@ -36,6 +36,66 @@ export interface ListUsersParams {
   pageSize?: number;
 }
 
+export interface AdminOrganizationOwner {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AdminOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  memberCount: number;
+  owners: AdminOrganizationOwner[];
+}
+
+export interface ListOrganizationsResponse {
+  items: AdminOrganization[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ListOrganizationsParams {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AdminOrganizationMember {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  joinedAt: string;
+  isActive: boolean;
+}
+
+export interface OrganizationMembersResponse {
+  organizationId: string;
+  organizationName: string;
+  members: AdminOrganizationMember[];
+}
+
+export interface SetOrganizationOwnerResponse {
+  organizationId: string;
+  ownerUserId: string;
+  ownerEmail: string;
+  demotedOwnerUserIds: string[];
+}
+
+export interface SetOrganizationActiveResponse {
+  organizationId: string;
+  name: string;
+  isActive: boolean;
+}
+
 function createClient(): AxiosInstance {
   const client = axios.create({
     baseURL: API_BASE_URL,
@@ -85,5 +145,21 @@ export const adminRepository = {
 
   setActive(userId: string, isActive: boolean): Promise<AdminUser> {
     return wrap(adminClient.post(`/api/admin/users/${userId}/active`, { isActive }));
+  },
+
+  listOrganizations(params: ListOrganizationsParams = {}): Promise<ListOrganizationsResponse> {
+    return wrap(adminClient.get<ListOrganizationsResponse>("/api/admin/organizations", { params }));
+  },
+
+  listOrganizationMembers(organizationId: string): Promise<OrganizationMembersResponse> {
+    return wrap(adminClient.get<OrganizationMembersResponse>(`/api/admin/organizations/${organizationId}/members`));
+  },
+
+  setOrganizationOwner(organizationId: string, userId: string): Promise<SetOrganizationOwnerResponse> {
+    return wrap(adminClient.post(`/api/admin/organizations/${organizationId}/owner`, { userId }));
+  },
+
+  setOrganizationActive(organizationId: string, isActive: boolean): Promise<SetOrganizationActiveResponse> {
+    return wrap(adminClient.post(`/api/admin/organizations/${organizationId}/active`, { isActive }));
   },
 };
