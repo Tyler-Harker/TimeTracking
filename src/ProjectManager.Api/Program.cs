@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Carter;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProjectManager.Api.Data;
@@ -16,6 +17,19 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Aspire service defaults
 builder.AddServiceDefaults();
+
+// 1b. Honor X-Forwarded-* headers from the reverse proxy (CapRover/nginx/Caddy) so the app
+// sees the original scheme and client IP. Required by OpenIddict's HTTPS-only check in
+// production; without this, /connect/* returns "This server only accepts HTTPS requests".
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+        | ForwardedHeaders.XForwardedProto
+        | ForwardedHeaders.XForwardedHost;
+    // Trust any upstream proxy; the container only ever receives traffic via the platform proxy.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // 2. EF Core + PostgreSQL via Aspire
 // In hosted environments, allow a single DATABASE_URL (postgres://user:pass@host:port/db?sslmode=...)
@@ -141,6 +155,9 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Middleware pipeline
+// Must run first so downstream middleware (auth, OpenIddict) sees the original scheme/host.
+app.UseForwardedHeaders();
+
 app.MapDefaultEndpoints();
 
 if (app.Environment.IsDevelopment())
