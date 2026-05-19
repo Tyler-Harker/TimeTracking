@@ -12,12 +12,28 @@ function handleError(error: unknown): never {
   throw error;
 }
 
+export interface TimeEntryListFilters {
+  projectId?: string;
+  taskId?: string;
+  userId?: string;
+  clientId?: string;
+  fromDate?: string;
+  toDate?: string;
+  unpaged?: boolean;
+  pageSize?: number;
+}
+
 export const timeEntryRepository = {
-  async list(filters?: { projectId?: string; taskId?: string }): Promise<TimeEntry[]> {
+  async list(filters?: TimeEntryListFilters): Promise<TimeEntry[]> {
     try {
-      const response = await apiClient.get<PaginatedResponse<TimeEntry>>(ApiEndpoints.timeEntries, {
-        params: { ...filters, pageSize: 100 },
-      });
+      const { unpaged, pageSize, ...rest } = filters ?? {};
+      const params: Record<string, unknown> = { ...rest };
+      if (unpaged) {
+        params.unpaged = true;
+      } else {
+        params.pageSize = pageSize ?? 100;
+      }
+      const response = await apiClient.get<PaginatedResponse<TimeEntry>>(ApiEndpoints.timeEntries, { params });
       return response.data.items;
     } catch (error) { handleError(error); }
   },

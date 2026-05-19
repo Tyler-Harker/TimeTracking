@@ -21,6 +21,7 @@ export const ApiEndpoints = {
 
   // Users
   currentUser: "/api/users/me",
+  organizationUsers: "/api/users",
 
   // Organizations
   organizations: "/api/organizations",

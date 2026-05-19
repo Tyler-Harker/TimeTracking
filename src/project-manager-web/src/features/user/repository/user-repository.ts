@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/client";
 import { ApiEndpoints } from "@/core/api/constants";
 import { ApiException } from "@/core/api/exceptions";
-import type { UserProfile, UpdateUserRequest } from "../models/types";
+import type { UserProfile, UpdateUserRequest, OrganizationUser } from "../models/types";
 import { AxiosError } from "axios";
 
 export const userRepository = {
@@ -20,6 +20,18 @@ export const userRepository = {
   async updateUser(request: UpdateUserRequest): Promise<void> {
     try {
       await apiClient.put(ApiEndpoints.currentUser, request);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        throw ApiException.fromResponse(error.response?.status ?? 500, error.response?.data);
+      }
+      throw error;
+    }
+  },
+
+  async listOrganizationUsers(): Promise<OrganizationUser[]> {
+    try {
+      const response = await apiClient.get<OrganizationUser[]>(ApiEndpoints.organizationUsers);
+      return response.data;
     } catch (error) {
       if (error instanceof AxiosError) {
         throw ApiException.fromResponse(error.response?.status ?? 500, error.response?.data);

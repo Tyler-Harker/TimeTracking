@@ -13,3 +13,10 @@ export interface UpdateUserRequest {
   firstName?: string;
   lastName?: string;
 }
+
+export interface OrganizationUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}

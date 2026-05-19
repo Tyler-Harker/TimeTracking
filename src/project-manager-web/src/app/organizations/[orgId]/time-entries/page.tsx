@@ -37,7 +37,11 @@ export default function TimeEntryListPage() {
 
   return (
     <div className="p-6">
-      <PageHeader title="Time Entries" action={{ label: "New Entry", href: `/organizations/${orgId}/time-entries/new` }} />
+      <PageHeader
+        title="Time Entries"
+        secondaryAction={{ label: "Calendar", href: `/organizations/${orgId}/time-entries/calendar` }}
+        action={{ label: "New Entry", href: `/organizations/${orgId}/time-entries/new` }}
+      />
       {entries.length === 0 ? (
         <EmptyState message="No time entries yet." />
       ) : (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { timeEntryRepository } from "@/features/time-entries/repository/time-entry-repository";
 import { projectRepository } from "@/features/projects/repository/project-repository";
 import type { Project } from "@/features/projects/models/types";
@@ -18,11 +18,17 @@ export default function TimeEntryNewPage() {
   const params = useParams<{ orgId: string }>();
   const orgId = params.orgId;
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectId, setProjectId] = useState("");
-  const [date, setDate] = useState((() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; })());
+  const [date, setDate] = useState(() => {
+    const fromUrl = searchParams.get("date");
+    if (fromUrl && /^\d{4}-\d{2}-\d{2}$/.test(fromUrl)) return fromUrl;
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  });
   const [hours, setHours] = useState("");
   const [description, setDescription] = useState("");
   const [isBillable, setIsBillable] = useState(true);
