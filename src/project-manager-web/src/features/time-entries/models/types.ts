@@ -8,6 +8,7 @@ export interface TimeEntry {
   hours: number;
   description?: string;
   billableRate?: number | null;
+  inheritedBillableRate?: number | null;
   isBillable: boolean;
   isInvoiced: boolean;
   taskId?: string;

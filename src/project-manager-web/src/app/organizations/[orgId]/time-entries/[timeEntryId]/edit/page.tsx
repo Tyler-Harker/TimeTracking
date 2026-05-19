@@ -23,7 +23,8 @@ export default function TimeEntryEditPage() {
   const [hours, setHours] = useState("");
   const [description, setDescription] = useState("");
   const [isBillable, setIsBillable] = useState(true);
-  const [billableRate, setBillableRate] = useState<number | null>(null);
+  const [billableRateInput, setBillableRateInput] = useState("");
+  const [inheritedBillableRate, setInheritedBillableRate] = useState<number | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,7 +35,8 @@ export default function TimeEntryEditPage() {
         setHours(entry.hours.toString());
         setDescription(entry.description ?? "");
         setIsBillable(entry.isBillable);
-        setBillableRate(entry.billableRate ?? null);
+        setBillableRateInput(entry.billableRate != null ? String(entry.billableRate) : "");
+        setInheritedBillableRate(entry.inheritedBillableRate ?? null);
         setTaskId(entry.taskId ?? null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
@@ -48,12 +50,19 @@ export default function TimeEntryEditPage() {
     e.preventDefault();
     setSaving(true);
     try {
+      const trimmed = billableRateInput.trim();
+      const parsedRate = trimmed === "" ? null : parseFloat(trimmed);
+      if (parsedRate !== null && (Number.isNaN(parsedRate) || parsedRate < 0)) {
+        setError("Billable rate must be 0 or greater");
+        setSaving(false);
+        return;
+      }
       await timeEntryRepository.update(params.timeEntryId, {
         date,
         hours: parseFloat(hours),
         description: description || undefined,
         isBillable,
-        billableRate,
+        billableRate: parsedRate,
         taskId,
       });
       router.push(`/organizations/${params.orgId}/time-entries`);
@@ -105,6 +114,31 @@ export default function TimeEntryEditPage() {
             <div className="flex items-center gap-2">
               <Checkbox checked={isBillable} onCheckedChange={(checked) => setIsBillable(checked as boolean)} />
               <Label className="cursor-pointer">Billable</Label>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between">
+                <Label>Billable Rate</Label>
+                {billableRateInput.trim() !== "" && (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                    onClick={() => setBillableRateInput("")}
+                  >
+                    Clear (use inherited)
+                  </button>
+                )}
+              </div>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder={inheritedBillableRate != null ? `Inherited: $${inheritedBillableRate}` : "No inherited rate"}
+                value={billableRateInput}
+                onChange={(e) => setBillableRateInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave blank to inherit from the project, client, or organization default.
+              </p>
             </div>
             <div className="flex gap-3">
               <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
