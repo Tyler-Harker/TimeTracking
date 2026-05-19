@@ -23,6 +23,8 @@ export default function TimeEntryEditPage() {
   const [hours, setHours] = useState("");
   const [description, setDescription] = useState("");
   const [isBillable, setIsBillable] = useState(true);
+  const [billableRate, setBillableRate] = useState<number | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -32,6 +34,8 @@ export default function TimeEntryEditPage() {
         setHours(entry.hours.toString());
         setDescription(entry.description ?? "");
         setIsBillable(entry.isBillable);
+        setBillableRate(entry.billableRate ?? null);
+        setTaskId(entry.taskId ?? null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -44,7 +48,14 @@ export default function TimeEntryEditPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await timeEntryRepository.update(params.timeEntryId, { date, hours: parseFloat(hours), description: description || undefined, isBillable });
+      await timeEntryRepository.update(params.timeEntryId, {
+        date,
+        hours: parseFloat(hours),
+        description: description || undefined,
+        isBillable,
+        billableRate,
+        taskId,
+      });
       router.push(`/organizations/${params.orgId}/time-entries`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to update");

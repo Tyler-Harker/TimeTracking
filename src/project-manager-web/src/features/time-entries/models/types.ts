@@ -7,6 +7,7 @@ export interface TimeEntry {
   date: string;
   hours: number;
   description?: string;
+  billableRate?: number | null;
   isBillable: boolean;
   isInvoiced: boolean;
   taskId?: string;
@@ -26,6 +27,7 @@ export interface UpdateTimeEntryRequest {
   date?: string;
   hours?: number;
   description?: string;
+  billableRate?: number | null;
   isBillable?: boolean;
-  taskId?: string;
+  taskId?: string | null;
 }
