@@ -1,7 +1,7 @@
 import { apiClient } from "@/core/api/client";
 import { ApiEndpoints } from "@/core/api/constants";
 import { ApiException } from "@/core/api/exceptions";
-import type { Invoice, InvoiceDetail, GenerateInvoiceRequest, UpdateInvoiceStatusRequest, AddLineItemRequest } from "../models/types";
+import type { Invoice, InvoiceDetail, GenerateInvoiceRequest, UpdateInvoiceStatusRequest, AddLineItemRequest, InvoicePreview } from "../models/types";
 import type { PaginatedResponse } from "@/core/api/types";
 import { AxiosError } from "axios";
 
@@ -32,6 +32,13 @@ export const invoiceRepository = {
   async generate(request: GenerateInvoiceRequest): Promise<void> {
     try {
       await apiClient.post(ApiEndpoints.generateInvoice, request);
+    } catch (error) { handleError(error); }
+  },
+
+  async preview(request: { clientId?: string; projectId?: string }): Promise<InvoicePreview> {
+    try {
+      const response = await apiClient.post<InvoicePreview>(ApiEndpoints.previewInvoice, request);
+      return response.data;
     } catch (error) { handleError(error); }
   },
 

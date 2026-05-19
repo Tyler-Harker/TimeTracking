@@ -84,29 +84,24 @@ public static class GenerateInvoice
                 DueDate = request.DueDate
             };
 
-            // Group time entries by project for line items
-            var grouped = timeEntries.GroupBy(te => te.ProjectId);
+            var previewLines = InvoiceLineItemBuilder.Build(timeEntries);
+            var entriesByProject = timeEntries.GroupBy(te => te.ProjectId).ToDictionary(g => g.Key, g => g.ToList());
             var lineItems = new List<InvoiceLineItem>();
 
-            foreach (var group in grouped)
+            foreach (var line in previewLines)
             {
-                var totalHours = group.Sum(te => te.Hours);
-                var avgRate = group.Average(te => te.BillableRate ?? 0);
-                var amount = totalHours * avgRate;
-                var projectName = group.First().Project.Name;
-
                 var lineItem = new InvoiceLineItem
                 {
                     InvoiceId = invoice.Id,
-                    Description = $"{projectName} ({group.Count()} entries, {totalHours:F2} hours)",
-                    Quantity = totalHours,
-                    UnitPrice = avgRate,
-                    Amount = amount
+                    Description = line.Description,
+                    Quantity = line.Quantity,
+                    UnitPrice = line.UnitPrice,
+                    Amount = line.Amount
                 };
 
                 lineItems.Add(lineItem);
 
-                foreach (var entry in group)
+                foreach (var entry in entriesByProject[line.ProjectId])
                 {
                     entry.IsInvoiced = true;
                     entry.InvoiceLineItem = lineItem;

@@ -60,6 +60,7 @@ export const ApiEndpoints = {
   invoices: "/api/invoices",
   invoiceById: (id: string) => `/api/invoices/${id}`,
   generateInvoice: "/api/invoices/generate",
+  previewInvoice: "/api/invoices/preview",
   invoiceStatus: (id: string) => `/api/invoices/${id}/status`,
   invoiceLineItems: (invoiceId: string) =>
     `/api/invoices/${invoiceId}/line-items`,

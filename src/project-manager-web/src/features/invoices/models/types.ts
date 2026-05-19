@@ -38,6 +38,21 @@ export interface GenerateInvoiceRequest {
   notes?: string;
 }
 
+export interface InvoicePreviewLineItem {
+  projectId: string;
+  projectName: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+export interface InvoicePreview {
+  entryCount: number;
+  lineItems: InvoicePreviewLineItem[];
+  subtotal: number;
+}
+
 export interface UpdateInvoiceStatusRequest {
   status: InvoiceStatus;
 }
